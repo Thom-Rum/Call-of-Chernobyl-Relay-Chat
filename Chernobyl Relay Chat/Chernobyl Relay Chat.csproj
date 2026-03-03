@@ -207,8 +207,9 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>move /Y "$(TargetDir)*.dll" "$(TargetDir)lib"
-move /Y "$(TargetDir)*.xml" "$(TargetDir)lib"</PostBuildEvent>
+    <PostBuildEvent>if not exist "$(TargetDir)lib" mkdir "$(TargetDir)lib"
+if exist "$(TargetDir)*.dll" move /Y "$(TargetDir)*.dll" "$(TargetDir)lib"
+if exist "$(TargetDir)*.xml" move /Y "$(TargetDir)*.xml" "$(TargetDir)lib"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
