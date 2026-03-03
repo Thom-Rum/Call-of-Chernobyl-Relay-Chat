@@ -13,7 +13,7 @@ namespace Chernobyl_Relay_Chat
         // Font: Graffiti1CTT Regular, as used in S.T.A.L.K.E.R.: Shadow of Chernobyl (GSC Game World, 2007).
         // Bundled with that game and used here for aesthetic consistency.
         // All rights remain with the original authors / GSC Game World.
-        public const float FontSize = 9.25f;
+        public const float FontSize = 10.25f;
         private static readonly PrivateFontCollection privateFonts = new PrivateFontCollection();
         public static FontFamily GraffitiFamily { get; private set; }
         public static Font AppFont { get; private set; }
