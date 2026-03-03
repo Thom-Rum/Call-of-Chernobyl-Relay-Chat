@@ -31,6 +31,7 @@
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LanguagePrompt));
             this.label2 = new System.Windows.Forms.Label();
             this.buttonEnglish = new System.Windows.Forms.Button();
+            this.buttonSlavik = new System.Windows.Forms.Button();
             this.buttonRussian = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
@@ -47,7 +48,7 @@
             // 
             // buttonEnglish
             // 
-            this.buttonEnglish.Location = new System.Drawing.Point(69, 141);
+            this.buttonEnglish.Location = new System.Drawing.Point(37, 141);
             this.buttonEnglish.Name = "buttonEnglish";
             this.buttonEnglish.Size = new System.Drawing.Size(75, 23);
             this.buttonEnglish.TabIndex = 2;
@@ -55,13 +56,23 @@
             this.buttonEnglish.UseVisualStyleBackColor = true;
             this.buttonEnglish.Click += new System.EventHandler(this.buttonEnglish_Click);
             // 
+            // buttonSlavik
+            // 
+            this.buttonSlavik.Location = new System.Drawing.Point(150, 141);
+            this.buttonSlavik.Name = "buttonSlavik";
+            this.buttonSlavik.Size = new System.Drawing.Size(75, 23);
+            this.buttonSlavik.TabIndex = 3;
+            this.buttonSlavik.Text = "українська";
+            this.buttonSlavik.UseVisualStyleBackColor = true;
+            this.buttonSlavik.Click += new System.EventHandler(this.buttonSlavik_Click);
+            // 
             // buttonRussian
             // 
-            this.buttonRussian.Location = new System.Drawing.Point(231, 141);
+            this.buttonRussian.Location = new System.Drawing.Point(263, 141);
             this.buttonRussian.Name = "buttonRussian";
             this.buttonRussian.Size = new System.Drawing.Size(75, 23);
-            this.buttonRussian.TabIndex = 3;
-            this.buttonRussian.Text = "славік"; 
+            this.buttonRussian.TabIndex = 4;
+            this.buttonRussian.Text = "Русский";
             this.buttonRussian.UseVisualStyleBackColor = true;
             this.buttonRussian.Click += new System.EventHandler(this.buttonRussian_Click);
             // 
@@ -72,6 +83,7 @@
             this.ClientSize = new System.Drawing.Size(375, 202);
             this.ControlBox = false;
             this.Controls.Add(this.buttonRussian);
+            this.Controls.Add(this.buttonSlavik);
             this.Controls.Add(this.buttonEnglish);
             this.Controls.Add(this.label2);
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -85,6 +97,7 @@
 
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.Button buttonEnglish;
+        private System.Windows.Forms.Button buttonSlavik;
         private System.Windows.Forms.Button buttonRussian;
     }
 }

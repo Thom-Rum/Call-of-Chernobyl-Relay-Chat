@@ -58,8 +58,8 @@
     <Reference Include="GitHubUpdate, Version=1.2.0.0, Culture=neutral, processorArchitecture=MSIL">
       <HintPath>..\packages\GitHubUpdate.1.2.0.0\lib\net45\GitHubUpdate.dll</HintPath>
     </Reference>
-    <Reference Include="log4net, Version=2.0.15.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
-      <HintPath>..\packages\log4net.2.0.15\lib\net45\log4net.dll</HintPath>
+    <Reference Include="log4net, Version=2.0.17.0, Culture=neutral, PublicKeyToken=669e0ddf0bb1aa2a, processorArchitecture=MSIL">
+      <HintPath>..\packages\log4net.2.0.17\lib\net45\log4net.dll</HintPath>
     </Reference>
     <Reference Include="Meebey.SmartIrc4net, Version=0.4.5.0, Culture=neutral, PublicKeyToken=7868485fbf407e0f, processorArchitecture=MSIL">
       <HintPath>..\packages\SmartIrc4net.1.1\lib\Meebey.SmartIrc4net.dll</HintPath>
@@ -163,6 +163,19 @@
     <EmbeddedResource Include="UpdateForm.resx">
       <DependentUpon>UpdateForm.cs</DependentUpon>
     </EmbeddedResource>
+    <EmbeddedResource Include="Assets\Graffiti1CTT Regular.ttf" />
+    <EmbeddedResource Include="Assets\res\death_classes.xml" />
+    <EmbeddedResource Include="Assets\res\death_formats.xml" />
+    <EmbeddedResource Include="Assets\res\death_generic.xml" />
+    <EmbeddedResource Include="Assets\res\death_levels.xml" />
+    <EmbeddedResource Include="Assets\res\death_observances.xml" />
+    <EmbeddedResource Include="Assets\res\death_remarks.xml" />
+    <EmbeddedResource Include="Assets\res\death_sections.xml" />
+    <EmbeddedResource Include="Assets\res\death_times.xml" />
+    <EmbeddedResource Include="Assets\res\fnames.xml" />
+    <EmbeddedResource Include="Assets\res\localization.xml" />
+    <EmbeddedResource Include="Assets\res\localization_machine.xml" />
+    <EmbeddedResource Include="Assets\res\snames.xml" />
     <None Include="packages.config" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
@@ -194,8 +207,7 @@
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
-    <PostBuildEvent>xcopy /Y "$(SolutionDir)res" "$(TargetDir)res"
-move /Y "$(TargetDir)*.dll" "$(TargetDir)lib"
+    <PostBuildEvent>move /Y "$(TargetDir)*.dll" "$(TargetDir)lib"
 move /Y "$(TargetDir)*.xml" "$(TargetDir)lib"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

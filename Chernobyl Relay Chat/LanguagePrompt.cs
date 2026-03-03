@@ -18,6 +18,12 @@ namespace Chernobyl_Relay_Chat
             Close();
         }
 
+        private void buttonSlavik_Click(object sender, EventArgs e)
+        {
+            Result = "ukr";
+            Close();
+        }
+
         private void buttonRussian_Click(object sender, EventArgs e)
         {
             Result = "rus";

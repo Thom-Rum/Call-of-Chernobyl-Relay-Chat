@@ -353,7 +353,7 @@
             this.comboBoxChannel.Items.AddRange(new object[] {
             "English",
             "English (Roleplay)",
-            "славік"});
+            "українська / Русский"});
             this.comboBoxChannel.Location = new System.Drawing.Point(6, 59);
             this.comboBoxChannel.Name = "comboBoxChannel";
             this.comboBoxChannel.Size = new System.Drawing.Size(280, 21);
@@ -366,7 +366,8 @@
             this.comboBoxLanguage.FormattingEnabled = true;
             this.comboBoxLanguage.Items.AddRange(new object[] {
             "English",
-            "славік"});
+            "українська",
+            "Русский"});
             this.comboBoxLanguage.Location = new System.Drawing.Point(6, 19);
             this.comboBoxLanguage.Name = "comboBoxLanguage";
             this.comboBoxLanguage.Size = new System.Drawing.Size(280, 21);
