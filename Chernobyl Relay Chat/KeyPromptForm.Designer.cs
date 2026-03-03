@@ -36,7 +36,7 @@
             // labelError
             // 
             this.labelError.AutoSize = true;
-            this.labelError.Font = new System.Drawing.Font("Microsoft Sans Serif", 8.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            // labelError font set in code (KeyPromptForm.cs) to use AppFont Bold
             this.labelError.Location = new System.Drawing.Point(51, 85);
             this.labelError.Name = "labelError";
             this.labelError.Size = new System.Drawing.Size(266, 13);

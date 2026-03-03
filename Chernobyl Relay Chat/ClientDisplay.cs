@@ -2,9 +2,6 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
-using System.Drawing.Text;
-using System.Reflection;
-using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace Chernobyl_Relay_Chat
@@ -12,13 +9,10 @@ namespace Chernobyl_Relay_Chat
     public partial class ClientDisplay : Form, ICRCSendable
     {
         private Font mainFont, boldFont, timeFont;
-        // Font: Graffiti1CTT Regular, as used in S.T.A.L.K.E.R.: Shadow of Chernobyl (GSC Game World, 2007).
-        // This font is bundled with that game and used here purely for aesthetic consistency.
-        // All rights to the font remain with its original authors/GSC Game World.
-        private static readonly PrivateFontCollection privateFonts = new PrivateFontCollection();
 
         public ClientDisplay()
         {
+            Font = Program.AppFont;
             InitializeComponent();
             Text = CRCStrings.Localize("crc_name") + " " + Application.ProductVersion;
             buttonSend.Text = CRCStrings.Localize("display_send");
@@ -27,33 +21,7 @@ namespace Chernobyl_Relay_Chat
 
         private void ClientDisplay_Load(object sender, EventArgs e)
         {
-            float baseSize = richTextBoxMessages.Font.SizeInPoints + 1f;
-            FontFamily graffitiFamily = null;
-            try
-            {
-                using (var stream = Assembly.GetExecutingAssembly()
-                    .GetManifestResourceStream("Chernobyl_Relay_Chat.Assets.Graffiti1CTT Regular.ttf"))
-                {
-                    if (stream != null)
-                    {
-                        byte[] data = new byte[stream.Length];
-                        stream.Read(data, 0, data.Length);
-                        IntPtr ptr = Marshal.AllocCoTaskMem(data.Length);
-                        Marshal.Copy(data, 0, ptr, data.Length);
-                        privateFonts.AddMemoryFont(ptr, data.Length);
-                        Marshal.FreeCoTaskMem(ptr);
-                        if (privateFonts.Families.Length > 0)
-                            graffitiFamily = privateFonts.Families[0];
-                    }
-                }
-            }
-            catch { }
-
-            if (graffitiFamily != null)
-                mainFont = new Font(graffitiFamily, baseSize, FontStyle.Regular, GraphicsUnit.Point);
-            else
-                mainFont = new Font(richTextBoxMessages.Font.FontFamily, baseSize, richTextBoxMessages.Font.Style, GraphicsUnit.Point);
-
+            mainFont = Program.AppFont;
             richTextBoxMessages.Font = mainFont;
             boldFont = new Font(mainFont, FontStyle.Bold);
             timeFont = new Font("Courier New", mainFont.SizeInPoints, FontStyle.Regular);
