@@ -12,6 +12,7 @@ namespace Chernobyl_Relay_Chat
 
         public ClientDisplay()
         {
+            Font = Program.AppFont;
             InitializeComponent();
             Text = CRCStrings.Localize("crc_name") + " " + Application.ProductVersion;
             buttonSend.Text = CRCStrings.Localize("display_send");
@@ -20,8 +21,8 @@ namespace Chernobyl_Relay_Chat
 
         private void ClientDisplay_Load(object sender, EventArgs e)
         {
-            //note original SoC font was graffiti1CTT
-            mainFont = richTextBoxMessages.Font;
+            mainFont = Program.AppFont;
+            richTextBoxMessages.Font = mainFont;
             boldFont = new Font(mainFont, FontStyle.Bold);
             timeFont = new Font("Courier New", mainFont.SizeInPoints, FontStyle.Regular);
             if (CRCOptions.DisplaySize != new Size(0, 0))

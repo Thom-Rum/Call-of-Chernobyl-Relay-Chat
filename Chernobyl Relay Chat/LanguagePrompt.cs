@@ -9,12 +9,19 @@ namespace Chernobyl_Relay_Chat
 
         public LanguagePrompt()
         {
+            Font = Program.AppFont;
             InitializeComponent();
         }
 
         private void buttonEnglish_Click(object sender, EventArgs e)
         {
             Result = "eng";
+            Close();
+        }
+
+        private void buttonSlavik_Click(object sender, EventArgs e)
+        {
+            Result = "ukr";
             Close();
         }
 

@@ -1,0 +1,174 @@
+# Chernobyl Relay Chat – CI/CD Pipeline
+#
+# Build strategy:
+#
+#   build-framework48  (this branch / master)
+#     Targets .NET Framework 4.8 using MSBuild.
+#     .NET Framework is Windows-only, so this job always runs on windows-latest.
+#     Uses the classic packages.config / NuGet restore flow.
+#
+#   build-net8  (future – uncomment when the dotnet8 branch is ready to merge)
+#     Targets .NET 8 using the dotnet CLI.
+#     Publishes self-contained binaries for linux-x64 and win-x64.
+
+name: .NET Zone Deployment Pipeline
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+env:
+  SOLUTION_NAME:      "Chernobyl Relay Chat.sln"
+  PROJECT_PATH:       "Chernobyl Relay Chat/Chernobyl Relay Chat.csproj"
+  PROJECT_DIRECTORY:  "Chernobyl Relay Chat"
+
+# ---------------------------------------------------------------------------
+# JOB 1 – .NET Framework 4.8  (MSBuild, Windows only)
+# ---------------------------------------------------------------------------
+jobs:
+  build-framework48:
+    name: Build (.NET Framework 4.8 · ${{ matrix.configuration }})
+    runs-on: windows-latest
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      # MSBuild is required for old-style (.NET Framework) projects
+      - name: Setup MSBuild
+        uses: microsoft/setup-msbuild@v2
+
+      # NuGet CLI is required for packages.config restore
+      - name: Setup NuGet
+        uses: NuGet/setup-nuget@v2
+
+      - name: Restore NuGet packages
+        run: nuget restore "${{ env.SOLUTION_NAME }}"
+
+      - name: Build (${{ matrix.configuration }})
+        run: |
+          msbuild "${{ env.SOLUTION_NAME }}" `
+            /p:Configuration=${{ matrix.configuration }} `
+            /p:Platform="Any CPU" `
+            /m
+
+      # ── Security ──────────────────────────────────────────────────────────
+
+      # Install a .NET SDK so the audit/trivy steps can use the dotnet CLI
+      - name: Install .NET SDK (for security tooling)
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: .NET vulnerability audit
+        run: dotnet list "${{ env.PROJECT_DIRECTORY }}" package --vulnerable --include-transitive
+        continue-on-error: true
+
+      - name: Microsoft Security DevOps
+        uses: microsoft/security-devops-action@v1.6.0
+        id: msdo
+        continue-on-error: true
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: CRITICAL
+        continue-on-error: true
+
+      # ── Artifacts ─────────────────────────────────────────────────────────
+
+      - name: Upload build artifacts (${{ matrix.configuration }})
+        if: matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cocrc-net48-win-x64-${{ matrix.configuration }}
+          path: "Chernobyl Relay Chat/bin/${{ matrix.configuration }}/"
+
+
+# ---------------------------------------------------------------------------
+# JOB 2 – .NET 8 multi-platform  (uncomment when dotnet8 branch is merged)
+# ---------------------------------------------------------------------------
+#
+#  build-net8:
+#    name: Build (.NET 8 · ${{ matrix.os }} · ${{ matrix.configuration }})
+#    runs-on: ${{ matrix.os }}
+#
+#    strategy:
+#      matrix:
+#        configuration: [Debug, Release]
+#        os: [ubuntu-latest, windows-latest]
+#
+#    steps:
+#      - name: Checkout
+#        uses: actions/checkout@v4
+#        with:
+#          fetch-depth: 0
+#
+#      - name: Install .NET 8
+#        uses: actions/setup-dotnet@v4
+#        with:
+#          dotnet-version: 8.0.x
+#
+#      - name: Clear NuGet cache
+#        run: dotnet nuget locals all --clear
+#
+#      - name: Restore dependencies
+#        run: dotnet restore "${{ env.SOLUTION_NAME }}"
+#
+#      - name: Build (${{ matrix.configuration }})
+#        run: dotnet build "${{ env.SOLUTION_NAME }}" --no-restore --configuration ${{ matrix.configuration }}
+#
+#      - name: Execute unit tests
+#        run: dotnet test --no-build --configuration ${{ matrix.configuration }}
+#        continue-on-error: true
+#
+#      - name: .NET vulnerability audit
+#        run: dotnet list "${{ env.PROJECT_DIRECTORY }}" package --vulnerable --include-transitive
+#        continue-on-error: true
+#
+#      - name: Microsoft Security DevOps
+#        uses: microsoft/security-devops-action@v1.6.0
+#        id: msdo
+#        continue-on-error: true
+#
+#      - name: Trivy filesystem scan
+#        uses: aquasecurity/trivy-action@master
+#        with:
+#          scan-type: fs
+#          scan-ref: .
+#          format: table
+#          severity: CRITICAL
+#        continue-on-error: true
+#
+#      - name: Publish Linux (linux-x64)
+#        if: matrix.os == 'ubuntu-latest'
+#        run: dotnet publish "${{ env.PROJECT_PATH }}" -r linux-x64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/linux-x64
+#
+#      - name: Publish Windows (win-x64)
+#        if: matrix.os == 'windows-latest'
+#        run: dotnet publish "${{ env.PROJECT_PATH }}" -r win-x64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/win-x64
+#
+#      - name: Upload Linux artifact
+#        if: matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release'
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: cocrc-net8-linux-x64-${{ matrix.configuration }}
+#          path: ./publish/linux-x64/
+#
+#      - name: Upload Windows artifact
+#        if: matrix.os == 'windows-latest' && matrix.configuration == 'Release'
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: cocrc-net8-win-x64-${{ matrix.configuration }}
+#          path: ./publish/win-x64/

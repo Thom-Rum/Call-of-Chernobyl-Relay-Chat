@@ -42,6 +42,7 @@ namespace Chernobyl_Relay_Chat
         {
             ["eng"] = "#cocrc_english",
            // ["eng"] = "#cocrc_english_rp",
+            ["ukr"] = "#cocrc_slavik",
             ["rus"] = "#cocrc_slavik",
         };
 

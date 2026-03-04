@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using System.Xml;
 
@@ -27,12 +28,19 @@ namespace Chernobyl_Relay_Chat
             ["#cocrc_slavik"] = "rus",
         };
 
+        private static Stream GetResStream(string filename)
+        {
+            return Assembly.GetExecutingAssembly()
+                .GetManifestResourceStream("Chernobyl_Relay_Chat.Assets.res." + filename);
+        }
+
         public static void Load()
         {
             XmlDocument xml = new XmlDocument();
             try
             {
-                xml.Load(@"res\localization.xml");
+                using (var stream = GetResStream("localization.xml"))
+                    xml.Load(stream);
                 foreach (XmlNode keyNode in xml.DocumentElement.ChildNodes)
                 {
                     string id = keyNode.Attributes["id"].Value;
@@ -44,7 +52,8 @@ namespace Chernobyl_Relay_Chat
                         localization[lang][id] = langNode.InnerText;
                     }
                 }
-                xml.Load(@"res\localization_machine.xml");
+                using (var stream = GetResStream("localization_machine.xml"))
+                    xml.Load(stream);
                 foreach (XmlNode keyNode in xml.DocumentElement.ChildNodes)
                 {
                     string id = keyNode.Attributes["id"].Value;
@@ -63,17 +72,17 @@ namespace Chernobyl_Relay_Chat
                 throw ex;
             }
 
-            deathFormats = loadXmlList(@"res\death_formats.xml");
-            deathTimes = loadXmlList(@"res\death_times.xml");
-            deathObservances = loadXmlList(@"res\death_observances.xml");
-            deathRemarks = loadXmlList(@"res\death_remarks.xml");
-            deathLevels = loadXmlListDict(@"res\death_levels.xml");
-            deathSections = loadXmlListDict(@"res\death_sections.xml");
-            deathClasses = loadXmlListDict(@"res\death_classes.xml");
-            deathGeneric = loadXmlList(@"res\death_generic.xml");
+            deathFormats = loadXmlList("death_formats.xml");
+            deathTimes = loadXmlList("death_times.xml");
+            deathObservances = loadXmlList("death_observances.xml");
+            deathRemarks = loadXmlList("death_remarks.xml");
+            deathLevels = loadXmlListDict("death_levels.xml");
+            deathSections = loadXmlListDict("death_sections.xml");
+            deathClasses = loadXmlListDict("death_classes.xml");
+            deathGeneric = loadXmlList("death_generic.xml");
 
-            fNames = loadXmlListDict(@"res\fnames.xml");
-            sNames = loadXmlListDict(@"res\snames.xml");
+            fNames = loadXmlListDict("fnames.xml");
+            sNames = loadXmlListDict("snames.xml");
 
             MergeLists(fNames, "actor_csky", "actor_stalker", "actor_ecolog");
             MergeLists(fNames, "actor_dolg", "actor_stalker", "actor_army");
@@ -94,9 +103,15 @@ namespace Chernobyl_Relay_Chat
 
         public static string Localize(string id)
         {
-            if (localization[CRCOptions.Language].ContainsKey(id)
-                && localization[CRCOptions.Language][id] != string.Empty)
-                return localization[CRCOptions.Language][id].Replace(@"\n", "\r\n");
+            // Try the selected language first, then fall back to Russian, then return the id.
+            // This allows partial Ukrainian translations to coexist with Russian fallbacks.
+            foreach (string lang in new[] { CRCOptions.Language, "rus" })
+            {
+                if (localization.ContainsKey(lang)
+                    && localization[lang].ContainsKey(id)
+                    && localization[lang][id] != string.Empty)
+                    return localization[lang][id].Replace(@"\n", "\r\n");
+            }
             return id;
         }
 
@@ -193,13 +208,17 @@ namespace Chernobyl_Relay_Chat
             "actor_renegade",
         };
 
-        private static Dictionary<string, List<string>> loadXmlList(string path)
+        private static Dictionary<string, List<string>> loadXmlList(string filename)
         {
             Dictionary<string, List<string>> list = new Dictionary<string, List<string>>();
             XmlDocument xml = new XmlDocument();
             try
             {
-                xml.Load(path);
+                using (var stream = GetResStream(filename))
+                {
+                    if (stream == null) return list;
+                    xml.Load(stream);
+                }
                 foreach (XmlNode langNode in xml.DocumentElement.ChildNodes)
                 {
                     list[langNode.Name] = new List<string>();
@@ -213,13 +232,17 @@ namespace Chernobyl_Relay_Chat
             return list;
         }
 
-        private static Dictionary<string, Dictionary<string, List<string>>> loadXmlListDict(string path)
+        private static Dictionary<string, Dictionary<string, List<string>>> loadXmlListDict(string filename)
         {
             Dictionary<string, Dictionary<string, List<string>>> listDict = new Dictionary<string, Dictionary<string, List<string>>>();
             XmlDocument xml = new XmlDocument();
             try
             {
-                xml.Load(path);
+                using (var stream = GetResStream(filename))
+                {
+                    if (stream == null) return listDict;
+                    xml.Load(stream);
+                }
                 foreach (XmlNode langNode in xml.DocumentElement.ChildNodes)
                 {
                     string lang = langNode.Name;

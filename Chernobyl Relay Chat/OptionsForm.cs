@@ -8,6 +8,7 @@ namespace Chernobyl_Relay_Chat
     {
         public OptionsForm()
         {
+            Font = Program.AppFont;
             InitializeComponent();
             Text = CRCStrings.Localize("options_title");
             buttonOK.Text = CRCStrings.Localize("options_ok");
@@ -125,13 +126,15 @@ namespace Chernobyl_Relay_Chat
         private readonly Dictionary<string, int> languageToIndex = new Dictionary<string, int>()
         {
             ["eng"] = 0,
-            ["rus"] = 1,
+            ["ukr"] = 1,
+            ["rus"] = 2,
         };
 
         private readonly Dictionary<int, string> indexToLanguage = new Dictionary<int, string>()
         {
             [0] = "eng",
-            [1] = "rus",
+            [1] = "ukr",
+            [2] = "rus",
         };
 
         private readonly Dictionary<string, int> channelToIndex = new Dictionary<string, int>()
