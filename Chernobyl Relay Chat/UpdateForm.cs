@@ -9,8 +9,8 @@ namespace Chernobyl_Relay_Chat
 
         public UpdateForm(bool gamedataRequired, string releaseNotes)
         {
-            Font = Program.AppFont;
             InitializeComponent();
+            Font = Program.AppFont;
             labelDescription.Text = CRCStrings.Localize("update_description");
             if (gamedataRequired)
                 labelGamedata.Text = CRCStrings.Localize("update_gamedata");

@@ -12,8 +12,8 @@ namespace Chernobyl_Relay_Chat
 
         public ClientDisplay()
         {
-            Font = Program.AppFont;
             InitializeComponent();
+            Font = Program.AppFont;
             Text = CRCStrings.Localize("crc_name") + " " + Application.ProductVersion;
             buttonSend.Text = CRCStrings.Localize("display_send");
             buttonOptions.Text = CRCStrings.Localize("display_options");

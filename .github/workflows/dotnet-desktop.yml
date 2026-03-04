@@ -15,9 +15,9 @@ name: .NET Zone Deployment Pipeline
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "easy-changes" ]
   pull_request:
-    branches: [ "master" ]
+    branches: [ "master", "easy-changes" ]
 
 env:
   SOLUTION_NAME:      "Chernobyl Relay Chat.sln"
