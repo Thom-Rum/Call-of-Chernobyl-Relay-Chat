@@ -6,12 +6,12 @@
 		
 	<edit_box x="20" y="718" width="984" height="30">
 		<texture>ui_linetext_e</texture>
-		<text x="10" font="letterica18" r="240" g="217" b="182"/>
+		<text x="10" font="graffiti19" r="240" g="217" b="182"/>
 	</edit_box>
 	
 	<button_send x="750" y="668" width="117" height="29">
 		<texture>ui_button_ordinary</texture>
-		<text font="letterica18" align="c">crc_send</text>
+		<text font="graffiti19" align="c">crc_send</text>
 		<text_color>
 			<e r="227" g="199" b="178"/>
 			<t r="180" g="153" b="155"/>
@@ -22,7 +22,7 @@
 	
 	<button_close x="887" y="668" width="117" height="29">
 		<texture>ui_button_ordinary</texture>
-		<text font="letterica18" align="c">crc_close</text>
+		<text font="graffiti19" align="c">crc_close</text>
 		<text_color>
 			<e r="227" g="199" b="178"/>
 			<t r="180" g="153" b="155"/>
@@ -35,7 +35,7 @@
 		<icon x="963" y="5" width="41" height="29" stretch="1"/>
 		
 		<name x="0" y="5" width="958" height="29">
-			<text font="letterica16" color="ui_5" align="r" vert_align="c"/>
+			<text font="graffiti19" color="ui_5" align="r" vert_align="c"/>
 		</name>
 	</user>
 	
@@ -43,11 +43,11 @@
 		<icon x="20" y="5" width="41" height="29" stretch="1"/>
 		
 		<title x="66" y="5" width="958" height="29">
-			<text font="letterica16" color="ui_5" vert_align="t"/>
+			<text font="graffiti19" color="ui_5" vert_align="t"/>
 		</title>
 
 		<message_text x="66" y="5" width="958" height="29" complex_mode="1">
-			<text font="letterica16" color="ui_1" vert_align="b"/>
+			<text font="graffiti19" color="ui_1" vert_align="b"/>
 		</message_text>
 	</message>
 </window>
