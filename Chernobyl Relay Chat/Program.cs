@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
 
+
 namespace Chernobyl_Relay_Chat
 {
     static class Program
@@ -17,6 +18,11 @@ namespace Chernobyl_Relay_Chat
         private static readonly PrivateFontCollection privateFonts = new PrivateFontCollection();
         public static FontFamily GraffitiFamily { get; private set; }
         public static Font AppFont { get; private set; }
+
+        // AddMemoryFont only registers the font with GDI+ (PrivateFontCollection).
+        // RichTextBox and other GDI-based controls won't see it without this GDI registration.
+        [DllImport("gdi32.dll", ExactSpelling = true)]
+        private static extern IntPtr AddFontMemResourceEx(IntPtr pbFont, uint cbFont, IntPtr pdv, ref uint pcFonts);
 
         private static void LoadFont()
         {
@@ -31,6 +37,8 @@ namespace Chernobyl_Relay_Chat
                     IntPtr ptr = Marshal.AllocCoTaskMem(data.Length);
                     Marshal.Copy(data, 0, ptr, data.Length);
                     privateFonts.AddMemoryFont(ptr, data.Length);
+                    uint dummy = 0;
+                    AddFontMemResourceEx(ptr, (uint)data.Length, IntPtr.Zero, ref dummy);
                     Marshal.FreeCoTaskMem(ptr);
                     if (privateFonts.Families.Length > 0)
                         GraffitiFamily = privateFonts.Families[0];

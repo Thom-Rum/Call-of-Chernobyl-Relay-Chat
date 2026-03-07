@@ -11,7 +11,6 @@ namespace Chernobyl_Relay_Chat
         public DebugDisplay()
         {
             InitializeComponent();
-            Font = Program.AppFont;
         }
 
         public void AddRaw(string message)

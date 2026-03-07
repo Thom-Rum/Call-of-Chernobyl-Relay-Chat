@@ -9,7 +9,6 @@ namespace Chernobyl_Relay_Chat
         public OptionsForm()
         {
             InitializeComponent();
-            Font = Program.AppFont;
             Text = CRCStrings.Localize("options_title");
             buttonOK.Text = CRCStrings.Localize("options_ok");
             buttonCancel.Text = CRCStrings.Localize("options_cancel");

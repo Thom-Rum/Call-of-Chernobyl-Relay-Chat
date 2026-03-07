@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Drawing;
 using System.Windows.Forms;
 
 namespace Chernobyl_Relay_Chat
@@ -11,8 +10,6 @@ namespace Chernobyl_Relay_Chat
         public KeyPromptForm()
         {
             InitializeComponent();
-            Font = Program.AppFont;
-            labelError.Font = new Font(Program.AppFont, FontStyle.Bold);
             labelHelp.Text = CRCStrings.Localize("keyprompt_help") + "\r\n\r\n";
             labelError.Text = CRCStrings.Localize("keyprompt_error");
             labelError.Hide();
