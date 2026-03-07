@@ -8,7 +8,6 @@ namespace Chernobyl_Relay_Chat
     {
         public OptionsForm()
         {
-            Font = Program.AppFont;
             InitializeComponent();
             Text = CRCStrings.Localize("options_title");
             buttonOK.Text = CRCStrings.Localize("options_ok");
@@ -38,8 +37,8 @@ namespace Chernobyl_Relay_Chat
 
         private void OptionsForm_Load(object sender, EventArgs e)
         {
-            comboBoxLanguage.SelectedIndex = languageToIndex[CRCOptions.Language];
-            comboBoxChannel.SelectedIndex = channelToIndex[CRCOptions.Channel];
+            comboBoxLanguage.SelectedIndex = languageToIndex.ContainsKey(CRCOptions.Language) ? languageToIndex[CRCOptions.Language] : 0;
+            comboBoxChannel.SelectedIndex = channelToIndex.ContainsKey(CRCOptions.Channel) ? channelToIndex[CRCOptions.Channel] : 0;
             radioButtonFactionAuto.Checked = CRCOptions.AutoFaction;
             radioButtonFactionManual.Checked = !CRCOptions.AutoFaction;
             textBoxName.Text = CRCOptions.Name;

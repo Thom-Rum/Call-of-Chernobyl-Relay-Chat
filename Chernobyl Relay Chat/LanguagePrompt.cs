@@ -9,7 +9,6 @@ namespace Chernobyl_Relay_Chat
 
         public LanguagePrompt()
         {
-            Font = Program.AppFont;
             InitializeComponent();
         }
 

@@ -10,7 +10,6 @@ namespace Chernobyl_Relay_Chat
 
         public DebugDisplay()
         {
-            Font = Program.AppFont;
             InitializeComponent();
         }
 

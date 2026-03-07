@@ -88,12 +88,20 @@ jobs:
 
       # ── Artifacts ─────────────────────────────────────────────────────────
 
+      - name: Stage release package
+        if: matrix.configuration == 'Release'
+        shell: bash
+        run: |
+          mkdir -p release-package
+          cp -r "Chernobyl Relay Chat/bin/Release/." release-package/
+          cp -r gamedata release-package/
+
       - name: Upload build artifacts (${{ matrix.configuration }})
         if: matrix.configuration == 'Release'
         uses: actions/upload-artifact@v4
         with:
           name: cocrc-net48-win-x64-${{ matrix.configuration }}
-          path: "Chernobyl Relay Chat/bin/${{ matrix.configuration }}/"
+          path: release-package/
 
 
 # ---------------------------------------------------------------------------
