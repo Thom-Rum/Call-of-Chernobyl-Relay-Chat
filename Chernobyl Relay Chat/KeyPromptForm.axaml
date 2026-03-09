@@ -1,0 +1,19 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Chernobyl_Relay_Chat.KeyPromptForm"
+        Title="Press a Key"
+        Width="370" Height="130"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+    <Grid Margin="8">
+        <TextBlock Name="labelHelp"
+                   TextWrapping="Wrap"
+                   TextAlignment="Center"
+                   VerticalAlignment="Top" />
+        <TextBlock Name="labelError"
+                   IsVisible="False"
+                   Foreground="OrangeRed"
+                   VerticalAlignment="Bottom"
+                   HorizontalAlignment="Center" />
+    </Grid>
+</Window>

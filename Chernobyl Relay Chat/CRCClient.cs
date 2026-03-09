@@ -1,13 +1,9 @@
-﻿using Meebey.SmartIrc4net;
+﻿using Avalonia.Threading;
+using Meebey.SmartIrc4net;
 using System;
 using System.Collections.Generic;
-using System.Media;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
-#if DEBUG
-using System.Threading;
-#endif
 
 namespace Chernobyl_Relay_Chat
 {
@@ -29,14 +25,12 @@ namespace Chernobyl_Relay_Chat
 
 #if DEBUG
         private static DebugDisplay debug = new DebugDisplay();
-        private static Thread debugThread;
 #endif
 
         public static void Start()
         {
 #if DEBUG
-            debugThread = new Thread(() => Application.Run(debug));
-            debugThread.Start();
+            Dispatcher.UIThread.Post(() => debug.Show());
 #endif
             client.Encoding = Encoding.UTF8;
             client.SendDelay = 200;
@@ -66,7 +60,7 @@ namespace Chernobyl_Relay_Chat
             }
             catch (CouldNotConnectException)
             {
-                MessageBox.Show(CRCStrings.Localize("client_connection_error"), CRCStrings.Localize("crc_name"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                CRCDisplay.ShowError(CRCStrings.Localize("client_connection_error"));
                 CRCDisplay.Stop();
             }
 #if DEBUG
@@ -203,7 +197,7 @@ namespace Chernobyl_Relay_Chat
                     client.SendMessage(SendType.CtcpReply, from, "PING " + e.CtcpParameter);
                     break;
                 case "VERSION":
-                    client.SendMessage(SendType.CtcpReply, from, "VERSION Chernobyl Relay Chat " + Application.ProductVersion);
+                    client.SendMessage(SendType.CtcpReply, from, "VERSION Chernobyl Relay Chat " + Program.Version);
                     break;
             }
         }
@@ -233,7 +227,7 @@ namespace Chernobyl_Relay_Chat
             lastName = CRCOptions.Name;
             lastChannel = CRCOptions.ChannelProxy();
             lastFaction = CRCOptions.GetFaction();
-            client.Login(CRCOptions.Name, CRCStrings.Localize("crc_name") + " " + Application.ProductVersion);
+            client.Login(CRCOptions.Name, CRCStrings.Localize("crc_name") + " " + Program.Version);
             client.RfcJoin(CRCOptions.ChannelProxy());
         }
 

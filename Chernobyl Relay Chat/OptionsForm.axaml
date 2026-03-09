@@ -1,0 +1,83 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Chernobyl_Relay_Chat.OptionsForm"
+        Title="Options"
+        Width="450" Height="430"
+        WindowStartupLocation="CenterOwner"
+        CanResize="False">
+    <DockPanel Margin="8">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,8,0,0" Spacing="8">
+            <Button Name="buttonOK"     Width="80">OK</Button>
+            <Button Name="buttonCancel" Width="80">Cancel</Button>
+        </StackPanel>
+        <TabControl Name="tabControl1">
+            <!-- CLIENT TAB -->
+            <TabItem Name="tabPageClient" Header="Client">
+                <StackPanel Margin="8" Spacing="4">
+                    <TextBlock Name="labelLanguage">Language</TextBlock>
+                    <ComboBox Name="comboBoxLanguage" HorizontalAlignment="Stretch">
+                        <ComboBoxItem>English</ComboBoxItem>
+                        <ComboBoxItem>Ukrainian / Russian</ComboBoxItem>
+                        <ComboBoxItem>Russian</ComboBoxItem>
+                    </ComboBox>
+                    <TextBlock Name="labelChannel" Margin="0,8,0,0">Channel</TextBlock>
+                    <ComboBox Name="comboBoxChannel" HorizontalAlignment="Stretch">
+                        <ComboBoxItem>#cocrc_english</ComboBoxItem>
+                        <ComboBoxItem>#cocrc_english_rp</ComboBoxItem>
+                        <ComboBoxItem>#cocrc_slavik</ComboBoxItem>
+                    </ComboBox>
+                    <CheckBox Name="checkBoxTimestamps" Margin="0,8,0,0">Show Timestamps</CheckBox>
+                </StackPanel>
+            </TabItem>
+            <!-- GAME TAB -->
+            <TabItem Name="tabPageGame" Header="Game">
+                <ScrollViewer>
+                    <StackPanel Margin="8" Spacing="4">
+                        <RadioButton Name="radioButtonFactionAuto">Auto Faction</RadioButton>
+                        <RadioButton Name="radioButtonFactionManual">Manual Faction</RadioButton>
+                        <ComboBox Name="comboBoxFaction" HorizontalAlignment="Stretch" IsEnabled="False">
+                            <ComboBoxItem>Bandit</ComboBoxItem>
+                            <ComboBoxItem>Clear Sky</ComboBoxItem>
+                            <ComboBoxItem>Duty</ComboBoxItem>
+                            <ComboBoxItem>Ecologist</ComboBoxItem>
+                            <ComboBoxItem>Freedom</ComboBoxItem>
+                            <ComboBoxItem>Loner</ComboBoxItem>
+                            <ComboBoxItem>Mercenary</ComboBoxItem>
+                            <ComboBoxItem>Military</ComboBoxItem>
+                            <ComboBoxItem>Monolith</ComboBoxItem>
+                            <ComboBoxItem>Renegade</ComboBoxItem>
+                        </ComboBox>
+                        <TextBlock Name="labelName" Margin="0,8,0,0">Name</TextBlock>
+                        <DockPanel>
+                            <Button DockPanel.Dock="Right" Name="buttonRandom" Margin="4,0,0,0">Random</Button>
+                            <TextBox Name="textBoxName" />
+                        </DockPanel>
+                        <CheckBox Name="checkBoxDeathSend"    Margin="0,8,0,0">Send Deaths</CheckBox>
+                        <CheckBox Name="checkBoxDeathReceive">Receive Deaths</CheckBox>
+                        <DockPanel Margin="0,4,0,0">
+                            <TextBlock Name="labelDeathInterval" DockPanel.Dock="Left"
+                                       VerticalAlignment="Center" Margin="0,0,8,0">Death Interval</TextBlock>
+                            <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Margin="4,0,0,0">sec</TextBlock>
+                            <NumericUpDown Name="numericUpDownDeath" Minimum="0" Maximum="3600" />
+                        </DockPanel>
+                        <DockPanel Margin="0,4,0,0">
+                            <TextBlock Name="labelNewsDuration" DockPanel.Dock="Left"
+                                       VerticalAlignment="Center" Margin="0,0,8,0">News Duration</TextBlock>
+                            <TextBlock DockPanel.Dock="Right" VerticalAlignment="Center" Margin="4,0,0,0">sec</TextBlock>
+                            <NumericUpDown Name="numericUpDownNewsDuration" Minimum="1" Maximum="60" />
+                        </DockPanel>
+                        <DockPanel Margin="0,4,0,0">
+                            <TextBlock Name="labelChatKey" DockPanel.Dock="Left"
+                                       VerticalAlignment="Center" Margin="0,0,8,0">Chat Key</TextBlock>
+                            <Button DockPanel.Dock="Right" Name="buttonChatKey" Margin="4,0,0,0">Change</Button>
+                            <TextBox Name="textBoxChatKey" IsReadOnly="True" />
+                        </DockPanel>
+                        <CheckBox Name="checkBoxNewsSound"  Margin="0,8,0,0">News Sound</CheckBox>
+                        <CheckBox Name="checkBoxCloseChat">Close Chat After Send</CheckBox>
+                    </StackPanel>
+                </ScrollViewer>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+</Window>

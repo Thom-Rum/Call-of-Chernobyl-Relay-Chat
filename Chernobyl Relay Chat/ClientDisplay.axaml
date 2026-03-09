@@ -1,0 +1,24 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Chernobyl_Relay_Chat.ClientDisplay"
+        Title="Chernobyl Relay Chat"
+        Width="800" Height="500"
+        MinWidth="400" MinHeight="250">
+    <DockPanel>
+        <!-- Input bar at the bottom -->
+        <DockPanel DockPanel.Dock="Bottom" Margin="4,4,4,4">
+            <Button DockPanel.Dock="Left"  Name="buttonOptions" Margin="0,0,4,0" IsEnabled="False">Options</Button>
+            <Button DockPanel.Dock="Right" Name="buttonSend"    Margin="4,0,0,0" IsEnabled="False">Send</Button>
+            <TextBox Name="textBoxInput" />
+        </DockPanel>
+        <!-- User list on the right -->
+        <TextBox DockPanel.Dock="Right" Name="textBoxUsers"
+                 IsReadOnly="True" Width="140"
+                 TextWrapping="Wrap" AcceptsReturn="False"
+                 Margin="0,4,4,4" />
+        <!-- Chat area -->
+        <ScrollViewer Name="chatScrollViewer" Margin="4,4,0,0">
+            <SelectableTextBlock Name="chatDisplay" TextWrapping="Wrap" />
+        </ScrollViewer>
+    </DockPanel>
+</Window>

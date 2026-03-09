@@ -1,38 +1,18 @@
-﻿using System;
-using System.Windows.Forms;
+﻿using Avalonia.Controls;
 
 namespace Chernobyl_Relay_Chat
 {
-    public partial class LanguagePrompt : Form
+    public partial class LanguagePrompt : Window
     {
-        public string Result;
+        /// <summary>Set by the button the user clicks: "eng", "ukr", or "rus".</summary>
+        public string Result { get; private set; } = "eng";
 
         public LanguagePrompt()
         {
             InitializeComponent();
-        }
-
-        private void buttonEnglish_Click(object sender, EventArgs e)
-        {
-            Result = "eng";
-            Close();
-        }
-
-        private void buttonSlavik_Click(object sender, EventArgs e)
-        {
-            Result = "ukr";
-            Close();
-        }
-
-        private void buttonRussian_Click(object sender, EventArgs e)
-        {
-            Result = "rus";
-            Close();
-        }
-
-        private void label2_Click(object sender, EventArgs e)
-        {
-
+            buttonEnglish.Click += (_, _) => { Result = "eng"; Close(); };
+            buttonSlavik.Click  += (_, _) => { Result = "ukr"; Close(); };
+            buttonRussian.Click += (_, _) => { Result = "rus"; Close(); };
         }
     }
 }

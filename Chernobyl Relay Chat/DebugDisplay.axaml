@@ -1,0 +1,14 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Chernobyl_Relay_Chat.DebugDisplay"
+        Title="CRC Debug"
+        Width="700" Height="450">
+    <ScrollViewer Name="scrollViewer">
+        <TextBox Name="textBoxRaw"
+                 IsReadOnly="True"
+                 AcceptsReturn="True"
+                 TextWrapping="NoWrap"
+                 FontFamily="Courier New,Courier,monospace"
+                 FontSize="12" />
+    </ScrollViewer>
+</Window>

@@ -1,98 +1,95 @@
-﻿using System.Collections.Generic;
-using System.Windows.Forms;
+﻿using Avalonia.Controls;
+using Avalonia.Input;
+using System.Collections.Generic;
 
 namespace Chernobyl_Relay_Chat
 {
-    public partial class KeyPromptForm : Form
+    public partial class KeyPromptForm : Window
     {
-        public string Result;
+        /// <summary>The DIK key name chosen, or null if the window was closed without a selection.</summary>
+        public string? Result { get; private set; }
 
         public KeyPromptForm()
         {
             InitializeComponent();
-            labelHelp.Text = CRCStrings.Localize("keyprompt_help") + "\r\n\r\n";
-            labelError.Text = CRCStrings.Localize("keyprompt_error");
-            labelError.Hide();
+            labelHelp.Text  = CRCStrings.Localize("keyprompt_help") + "\n\n";
+            labelError.IsVisible = false;
+            KeyDown += KeyPromptForm_KeyDown;
         }
 
-        private void KeyPromptForm_KeyDown(object sender, KeyEventArgs e)
+        private void KeyPromptForm_KeyDown(object? sender, KeyEventArgs e)
         {
-            Keys keyCode = e.KeyCode;
-            if(keyCode >= Keys.A && keyCode <= Keys.Z
-                || keyCode >= Keys.F1 && keyCode <= Keys.F15)
+            Key key = e.Key;
+            if ((key >= Key.A && key <= Key.Z) || (key >= Key.F1 && key <= Key.F12))
             {
-                Result = keyCode.ToString();
+                Result = key.ToString();
                 Close();
             }
-            else if (keyToDik.ContainsKey(keyCode))
+            else if (keyToDik.TryGetValue(key, out string? dik))
             {
-                Result = keyToDik[keyCode];
+                Result = dik;
                 Close();
             }
             else
-                labelError.Show();
+            {
+                labelError.IsVisible = true;
+                labelError.Text = CRCStrings.Localize("keyprompt_error");
+            }
         }
 
-        private static Dictionary<Keys, string> keyToDik = new Dictionary<Keys, string>()
+        private static readonly Dictionary<Key, string> keyToDik = new()
         {
-            [Keys.Oem3] = "GRAVE",
-            [Keys.D0] = "0",
-            [Keys.D1] = "1",
-            [Keys.D2] = "2",
-            [Keys.D3] = "3",
-            [Keys.D4] = "4",
-            [Keys.D5] = "5",
-            [Keys.D6] = "6",
-            [Keys.D7] = "7",
-            [Keys.D8] = "8",
-            [Keys.D9] = "9",
-            [Keys.OemMinus] = "MINUS",
-            [Keys.Oemplus] = "EQUALS",
-
-            [Keys.NumPad0] = "NUMPAD0",
-            [Keys.NumPad1] = "NUMPAD1",
-            [Keys.NumPad2] = "NUMPAD2",
-            [Keys.NumPad3] = "NUMPAD3",
-            [Keys.NumPad4] = "NUMPAD4",
-            [Keys.NumPad5] = "NUMPAD5",
-            [Keys.NumPad6] = "NUMPAD6",
-            [Keys.NumPad7] = "NUMPAD7",
-            [Keys.NumPad8] = "NUMPAD8",
-            [Keys.NumPad9] = "NUMPAD9",
-            [Keys.Decimal] = "DECIMAL",
-            [Keys.Add] = "ADD",
-            [Keys.Subtract] = "SUBTRACT",
-            [Keys.Multiply] = "MULTIPLY",
-            [Keys.Divide] = "DIVIDE",
-
-            // Both main enter and numpad enter are Keys.Enter, at least on my keyboard, so idk what Keys.Return is
-            [Keys.Enter] = "RETURN",
-            [Keys.Escape] = "ESCAPE",
-            [Keys.Tab] = "TAB",
-            [Keys.Space] = "SPACE",
-            [Keys.Oem2] = "SLASH",
-            [Keys.Oem7] = "APOSTROPHE",
-            [Keys.Back] = "BACKSPACE",
-            [Keys.Oem5] = "BACKSLASH",
-            [Keys.Oem4] = "LBRACKET",
-            [Keys.Oem6] = "RBRACKET",
-            [Keys.Oem1] = "SEMICOLON",
-            [Keys.Oemcomma] = "COMMA",
-            [Keys.OemPeriod] = "PERIOD",
-
-            [Keys.Delete] = "DELETE",
-            [Keys.End] = "END",
-            [Keys.Home] = "HOME",
-            [Keys.Insert] = "INSERT",
-            [Keys.Left] = "LEFT",
-            [Keys.Right] = "RIGHT",
-            [Keys.Up] = "UP",
-            [Keys.Down] = "DOWN",
+            [Key.OemTilde]       = "GRAVE",
+            [Key.D0]             = "0",
+            [Key.D1]             = "1",
+            [Key.D2]             = "2",
+            [Key.D3]             = "3",
+            [Key.D4]             = "4",
+            [Key.D5]             = "5",
+            [Key.D6]             = "6",
+            [Key.D7]             = "7",
+            [Key.D8]             = "8",
+            [Key.D9]             = "9",
+            [Key.OemMinus]       = "MINUS",
+            [Key.OemPlus]        = "EQUALS",
+            [Key.NumPad0]        = "NUMPAD0",
+            [Key.NumPad1]        = "NUMPAD1",
+            [Key.NumPad2]        = "NUMPAD2",
+            [Key.NumPad3]        = "NUMPAD3",
+            [Key.NumPad4]        = "NUMPAD4",
+            [Key.NumPad5]        = "NUMPAD5",
+            [Key.NumPad6]        = "NUMPAD6",
+            [Key.NumPad7]        = "NUMPAD7",
+            [Key.NumPad8]        = "NUMPAD8",
+            [Key.NumPad9]        = "NUMPAD9",
+            [Key.Decimal]        = "DECIMAL",
+            [Key.Add]            = "ADD",
+            [Key.Subtract]       = "SUBTRACT",
+            [Key.Multiply]       = "MULTIPLY",
+            [Key.Divide]         = "DIVIDE",
+            [Key.Enter]          = "RETURN",
+            [Key.Return]         = "RETURN",
+            [Key.Escape]         = "ESCAPE",
+            [Key.Tab]            = "TAB",
+            [Key.Space]          = "SPACE",
+            [Key.OemQuestion]    = "SLASH",
+            [Key.OemQuotes]      = "APOSTROPHE",
+            [Key.Back]           = "BACKSPACE",
+            [Key.OemBackslash]   = "BACKSLASH",
+            [Key.OemOpenBrackets]  = "LBRACKET",
+            [Key.OemCloseBrackets] = "RBRACKET",
+            [Key.OemSemicolon]   = "SEMICOLON",
+            [Key.OemComma]       = "COMMA",
+            [Key.OemPeriod]      = "PERIOD",
+            [Key.Delete]         = "DELETE",
+            [Key.End]            = "END",
+            [Key.Home]           = "HOME",
+            [Key.Insert]         = "INSERT",
+            [Key.Left]           = "LEFT",
+            [Key.Right]          = "RIGHT",
+            [Key.Up]             = "UP",
+            [Key.Down]           = "DOWN",
         };
-
-        private void labelHelp_Click(object sender, System.EventArgs e)
-        {
-
-        }
     }
 }
+

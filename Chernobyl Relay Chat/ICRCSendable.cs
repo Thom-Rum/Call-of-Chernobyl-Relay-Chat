@@ -1,8 +1,5 @@
-﻿using System;
+﻿using Avalonia.Media;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Chernobyl_Relay_Chat
 {
@@ -10,5 +7,6 @@ namespace Chernobyl_Relay_Chat
     {
         void AddInformation(string message);
         void AddError(string message);
+        void AddMessage(string nick, string message, IBrush nickBrush);
     }
 }

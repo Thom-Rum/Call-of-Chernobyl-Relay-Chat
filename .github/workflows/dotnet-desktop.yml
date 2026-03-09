@@ -2,12 +2,12 @@
 #
 # Build strategy:
 #
-#   build-framework48  (this branch / master)
+#   build-framework48  (master only)
 #     Targets .NET Framework 4.8 using MSBuild.
 #     .NET Framework is Windows-only, so this job always runs on windows-latest.
 #     Uses the classic packages.config / NuGet restore flow.
 #
-#   build-net8  (future – uncomment when the dotnet8 branch is ready to merge)
+#   build-net8  (master + dotnet-uplift)
 #     Targets .NET 8 using the dotnet CLI.
 #     Publishes self-contained binaries for linux-x64 and win-x64.
 
@@ -15,7 +15,7 @@ name: .NET Zone Deployment Pipeline
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "master", "dotnet-uplift" ]
   pull_request:
     branches: [ "master" ]
 
@@ -30,6 +30,7 @@ env:
 jobs:
   build-framework48:
     name: Build (.NET Framework 4.8 · ${{ matrix.configuration }})
+    if: github.ref == 'refs/heads/master' || github.base_ref == 'master'
     runs-on: windows-latest
 
     strategy:
@@ -105,78 +106,78 @@ jobs:
 
 
 # ---------------------------------------------------------------------------
-# JOB 2 – .NET 8 multi-platform  (uncomment when dotnet8 branch is merged)
+# JOB 2 – .NET 8 multi-platform  (Avalonia, Linux + Windows)
 # ---------------------------------------------------------------------------
-#
-#  build-net8:
-#    name: Build (.NET 8 · ${{ matrix.os }} · ${{ matrix.configuration }})
-#    runs-on: ${{ matrix.os }}
-#
-#    strategy:
-#      matrix:
-#        configuration: [Debug, Release]
-#        os: [ubuntu-latest, windows-latest]
-#
-#    steps:
-#      - name: Checkout
-#        uses: actions/checkout@v4
-#        with:
-#          fetch-depth: 0
-#
-#      - name: Install .NET 8
-#        uses: actions/setup-dotnet@v4
-#        with:
-#          dotnet-version: 8.0.x
-#
-#      - name: Clear NuGet cache
-#        run: dotnet nuget locals all --clear
-#
-#      - name: Restore dependencies
-#        run: dotnet restore "${{ env.SOLUTION_NAME }}"
-#
-#      - name: Build (${{ matrix.configuration }})
-#        run: dotnet build "${{ env.SOLUTION_NAME }}" --no-restore --configuration ${{ matrix.configuration }}
-#
-#      - name: Execute unit tests
-#        run: dotnet test --no-build --configuration ${{ matrix.configuration }}
-#        continue-on-error: true
-#
-#      - name: .NET vulnerability audit
-#        run: dotnet list "${{ env.PROJECT_DIRECTORY }}" package --vulnerable --include-transitive
-#        continue-on-error: true
-#
-#      - name: Microsoft Security DevOps
-#        uses: microsoft/security-devops-action@v1.6.0
-#        id: msdo
-#        continue-on-error: true
-#
-#      - name: Trivy filesystem scan
-#        uses: aquasecurity/trivy-action@master
-#        with:
-#          scan-type: fs
-#          scan-ref: .
-#          format: table
-#          severity: CRITICAL
-#        continue-on-error: true
-#
-#      - name: Publish Linux (linux-x64)
-#        if: matrix.os == 'ubuntu-latest'
-#        run: dotnet publish "${{ env.PROJECT_PATH }}" -r linux-x64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/linux-x64
-#
-#      - name: Publish Windows (win-x64)
-#        if: matrix.os == 'windows-latest'
-#        run: dotnet publish "${{ env.PROJECT_PATH }}" -r win-x64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/win-x64
-#
-#      - name: Upload Linux artifact
-#        if: matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release'
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: cocrc-net8-linux-x64-${{ matrix.configuration }}
-#          path: ./publish/linux-x64/
-#
-#      - name: Upload Windows artifact
-#        if: matrix.os == 'windows-latest' && matrix.configuration == 'Release'
-#        uses: actions/upload-artifact@v4
-#        with:
-#          name: cocrc-net8-win-x64-${{ matrix.configuration }}
-#          path: ./publish/win-x64/
+
+  build-net8:
+    name: Build (.NET 8 · ${{ matrix.os }} · ${{ matrix.configuration }})
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      matrix:
+        configuration: [Debug, Release]
+        os: [ubuntu-latest, windows-latest]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Install .NET 8
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 8.0.x
+
+      - name: Clear NuGet cache
+        run: dotnet nuget locals all --clear
+
+      - name: Restore dependencies
+        run: dotnet restore "${{ env.SOLUTION_NAME }}"
+
+      - name: Build (${{ matrix.configuration }})
+        run: dotnet build "${{ env.SOLUTION_NAME }}" --no-restore --configuration ${{ matrix.configuration }}
+
+      - name: Execute unit tests
+        run: dotnet test --no-build --configuration ${{ matrix.configuration }}
+        continue-on-error: true
+
+      - name: .NET vulnerability audit
+        run: dotnet list "${{ env.PROJECT_DIRECTORY }}" package --vulnerable --include-transitive
+        continue-on-error: true
+
+      - name: Microsoft Security DevOps
+        uses: microsoft/security-devops-action@v1.6.0
+        id: msdo
+        continue-on-error: true
+
+      - name: Trivy filesystem scan
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: fs
+          scan-ref: .
+          format: table
+          severity: CRITICAL
+        continue-on-error: true
+
+      - name: Publish Linux (linux-x64)
+        if: matrix.os == 'ubuntu-latest'
+        run: dotnet publish "${{ env.PROJECT_PATH }}" -r linux-x64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/linux-x64
+
+      - name: Publish Windows (win-x64)
+        if: matrix.os == 'windows-latest'
+        run: dotnet publish "${{ env.PROJECT_PATH }}" -r win-x64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/win-x64
+
+      - name: Upload Linux artifact
+        if: matrix.os == 'ubuntu-latest' && matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cocrc-net8-linux-x64-${{ matrix.configuration }}
+          path: ./publish/linux-x64/
+
+      - name: Upload Windows artifact
+        if: matrix.os == 'windows-latest' && matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cocrc-net8-win-x64-${{ matrix.configuration }}
+          path: ./publish/win-x64/

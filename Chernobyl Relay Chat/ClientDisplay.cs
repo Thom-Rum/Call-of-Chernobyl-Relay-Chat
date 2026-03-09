@@ -1,193 +1,164 @@
-﻿using System;
+﻿using Avalonia.Controls;
+using Avalonia.Controls.Documents;
+using Avalonia.Media;
+using Avalonia.Threading;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
-using System.Windows.Forms;
+using System.Timers;
 
 namespace Chernobyl_Relay_Chat
 {
-    public partial class ClientDisplay : Form, ICRCSendable
+    public partial class ClientDisplay : Window, ICRCSendable
     {
-        private Font mainFont, boldFont, timeFont;
+        private readonly Timer _gameCheckTimer  = new Timer(1000);
+        private readonly Timer _gameUpdateTimer = new Timer(100);
+        private readonly Timer _updateCheckTimer = new Timer(300_000); // 5 min
 
         public ClientDisplay()
         {
             InitializeComponent();
-            Font = Program.AppFont;
-            Text = CRCStrings.Localize("crc_name") + " " + Application.ProductVersion;
-            buttonSend.Text = CRCStrings.Localize("display_send");
-            buttonOptions.Text = CRCStrings.Localize("display_options");
-        }
 
-        private void ClientDisplay_Load(object sender, EventArgs e)
-        {
-            mainFont = Program.AppFont;
-            richTextBoxMessages.Font = mainFont;
-            boldFont = new Font(mainFont, FontStyle.Bold);
-            timeFont = new Font("Courier New", mainFont.SizeInPoints, FontStyle.Regular);
-            if (CRCOptions.DisplaySize != new Size(0, 0))
+            Title = CRCStrings.Localize("crc_name");
+            buttonSend.Content    = CRCStrings.Localize("display_send");
+            buttonOptions.Content = CRCStrings.Localize("display_options");
+
+            buttonSend.Click    += (_, _) => SendMessage();
+            buttonOptions.Click += (_, _) => new OptionsForm().Show(this);
+            textBoxInput.KeyDown += TextBoxInput_KeyDown;
+
+            // Ensure the Inlines collection is ready before any text is appended
+            chatDisplay.Inlines ??= new InlineCollection();
+
+            // Restore saved window geometry
+            if (CRCOptions.DisplayWidth > 0 && CRCOptions.DisplayHeight > 0)
             {
-                Location = CRCOptions.DisplayLocation;
-                Size = CRCOptions.DisplaySize;
+                Width    = CRCOptions.DisplayWidth;
+                Height   = CRCOptions.DisplayHeight;
+                Position = new Avalonia.PixelPoint(CRCOptions.DisplayLocationX, CRCOptions.DisplayLocationY);
             }
+
+            Closing += ClientDisplay_Closing;
+
+            _gameCheckTimer.Elapsed  += (_, _) => CRCGame.GameCheck();
+            _gameUpdateTimer.Elapsed += (_, _) => CRCGame.GameUpdate();
+            _updateCheckTimer.Elapsed += async (_, _) => await CRCUpdate.CheckUpdate();
+            _updateCheckTimer.AutoReset = false;
+
+            _gameCheckTimer.Start();
+            _gameUpdateTimer.Start();
+            _updateCheckTimer.Start();
 
             AddInformation(CRCStrings.Localize("display_connecting"));
         }
 
-        private void ClientDisplay_FormClosing(object sender, FormClosingEventArgs e)
+        private void ClientDisplay_Closing(object? sender, System.ComponentModel.CancelEventArgs e)
         {
-            if (WindowState == FormWindowState.Normal)
-            {
-                CRCOptions.DisplayLocation = Location;
-                CRCOptions.DisplaySize = Size;
-            }
-            else
-            {
-                CRCOptions.DisplayLocation = RestoreBounds.Location;
-                CRCOptions.DisplaySize = RestoreBounds.Size;
-            }
+            _gameCheckTimer.Stop();
+            _gameUpdateTimer.Stop();
+            _updateCheckTimer.Stop();
+
+            CRCOptions.DisplayLocationX = Position.X;
+            CRCOptions.DisplayLocationY = Position.Y;
+            CRCOptions.DisplayWidth  = (int)Width;
+            CRCOptions.DisplayHeight = (int)Height;
 
             CRCClient.Stop();
         }
 
-        private void buttonOptions_Click(object sender, EventArgs e)
+        private void TextBoxInput_KeyDown(object? sender, Avalonia.Input.KeyEventArgs e)
         {
-            new OptionsForm().Show();
+            if (e.Key == Avalonia.Input.Key.Enter)
+                SendMessage();
         }
 
-        private void buttonSend_Click(object sender, EventArgs e)
+        private void SendMessage()
         {
-            string trimmed = textBoxInput.Text.Trim();
+            string trimmed = textBoxInput.Text?.Trim() ?? "";
             if (trimmed.Length > 0)
             {
                 if (trimmed[0] == '/')
-                {
                     CRCCommands.ProcessCommand(trimmed, this);
-                }
-                else if (trimmed.Length > 0)
-                {
+                else
                     CRCClient.Send(trimmed);
-                }
-                textBoxInput.Clear();
+                textBoxInput.Text = "";
             }
         }
 
-        private void timerGameCheck_Tick(object sender, EventArgs e)
-        {
-            CRCGame.GameCheck();
-        }
-
-        private void timerGameUpdate_Tick(object sender, EventArgs e)
-        {
-            CRCGame.GameUpdate();
-        }
-
-        private async void timerCheckUpdate_Tick(object sender, EventArgs e)
-        {
-            bool result = await CRCUpdate.CheckUpdate();
-        }
-
-        private void richTextBoxMessages_LinkClicked(object sender, LinkClickedEventArgs e)
-        {
-            // Apparently safer than just passing the link
-            Process.Start("explorer.exe", e.LinkText);
-        }
-
-
         public void Enable()
         {
-            Invoke(() =>
+            Dispatcher.UIThread.Post(() =>
             {
-                buttonSend.Enabled = true;
-                buttonOptions.Enabled = true;
+                buttonSend.IsEnabled    = true;
+                buttonOptions.IsEnabled = true;
             });
         }
 
         public void Disable()
         {
-            Invoke(() =>
+            Dispatcher.UIThread.Post(() =>
             {
-                buttonSend.Enabled = false;
-                buttonOptions.Enabled = false;
+                buttonSend.IsEnabled    = false;
+                buttonOptions.IsEnabled = false;
             });
         }
 
         private void AddLinePrefix()
         {
-            if (richTextBoxMessages.Lines.Length != 0)
-                richTextBoxMessages.AppendText("\r\n");
+            if (chatDisplay.Inlines?.Count > 0)
+                chatDisplay.Inlines.Add(new LineBreak());
             if (CRCOptions.ShowTimestamps)
             {
-                richTextBoxMessages.SelectionColor = Color.Black;
-                richTextBoxMessages.SelectionFont = timeFont;
-                richTextBoxMessages.AppendText(DateTime.Now.ToString("hh:mm:ss "));
+                chatDisplay.Inlines!.Add(new Run
+                {
+                    Text       = DateTime.Now.ToString("HH:mm:ss "),
+                    FontFamily = new FontFamily("Courier New,Courier,monospace"),
+                    Foreground = Brushes.DimGray
+                });
             }
         }
 
-        public void AddLine(string line, Color color)
+        public void AddLine(string line, IBrush brush)
         {
-            Invoke(() =>
+            Dispatcher.UIThread.Post(() =>
             {
                 AddLinePrefix();
-                richTextBoxMessages.SelectionFont = mainFont;
-                richTextBoxMessages.SelectionColor = color;
-                richTextBoxMessages.AppendText(line);
+                chatDisplay.Inlines!.Add(new Run { Text = line, Foreground = brush });
+                chatScrollViewer.ScrollToEnd();
             });
         }
 
-        public void AddInformation(string line)
-        {
-            AddLine(line, Color.DarkBlue);
-        }
+        public void AddInformation(string message) => AddLine(message, Brushes.DodgerBlue);
+        public void AddError(string message)       => AddLine(message, Brushes.OrangeRed);
 
-        public void AddError(string line)
+        public void AddMessage(string nick, string message, IBrush nickBrush)
         {
-            AddLine(line, Color.Red);
-        }
-
-        public void AddMessage(string nick, string message, Color nickColor)
-        {
-            Invoke(() =>
+            Dispatcher.UIThread.Post(() =>
             {
                 AddLinePrefix();
-                richTextBoxMessages.SelectionFont = boldFont;
-                richTextBoxMessages.SelectionColor = nickColor;
-                richTextBoxMessages.AppendText(nick + ": ");
-                richTextBoxMessages.SelectionFont = mainFont;
-                richTextBoxMessages.SelectionColor = Color.Black;
-                richTextBoxMessages.AppendText(message);
+                chatDisplay.Inlines!.Add(new Run
+                {
+                    Text       = nick + ": ",
+                    FontWeight = FontWeight.Bold,
+                    Foreground = nickBrush
+                });
+                chatDisplay.Inlines.Add(new Run { Text = message, Foreground = Brushes.White });
+                chatScrollViewer.ScrollToEnd();
             });
         }
 
         public void AddHighlightMessage(string nick, string message)
         {
-            Invoke(() =>
-            {
-                AddMessage(nick, message, Color.Black);
-                int start = richTextBoxMessages.GetFirstCharIndexOfCurrentLine();
-                int length = richTextBoxMessages.TextLength - start;
-                richTextBoxMessages.Select(start, length);
-                richTextBoxMessages.SelectionBackColor = Color.Yellow;
-                richTextBoxMessages.Select(0, 0);
-                richTextBoxMessages.SelectionBackColor = Color.White;
-            });
-        }
-
-        private void richTextBoxMessages_TextChanged(object sender, EventArgs e)
-        {
-
+            // TODO: per-line background colour (not trivial with TextBlock Inlines)
+            AddMessage("[!] " + nick, message, Brushes.Yellow);
         }
 
         public void UpdateUsers(List<string> users)
         {
-            Invoke(() =>
-                textBoxUsers.Text = string.Join("\r\n", users
-                ));
-        }
-
-        private void Invoke(Action action)
-        {
-            base.Invoke(action);
+            Dispatcher.UIThread.Post(() =>
+                textBoxUsers.Text = string.Join("\n", users));
         }
     }
 }
+
+
