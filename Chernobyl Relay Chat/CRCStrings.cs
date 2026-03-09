@@ -69,7 +69,7 @@ namespace Chernobyl_Relay_Chat
             catch (Exception ex) when (ex is XmlException || ex is FileNotFoundException)
             {
                 // Problems
-                throw ex;
+                throw;
             }
 
             deathFormats = loadXmlList("death_formats.xml");

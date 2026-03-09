@@ -56,8 +56,8 @@ namespace Chernobyl_Relay_Chat
                 {
                     if (process.ProcessName == "xrEngine")
                     {
-                        string path = Path.GetDirectoryName(process.GetProcessPath());
-                        if (File.Exists(Path.Combine(path, CRCOptions.InPath)))
+                        string? path = Path.GetDirectoryName(process.GetProcessPath());
+                        if (path is not null && File.Exists(Path.Combine(path, CRCOptions.InPath)))
                         {
                             gamePath = path;
                             firstClear = false;
@@ -68,8 +68,8 @@ namespace Chernobyl_Relay_Chat
                     }
                     else if (process.MainWindowTitle == "S.T.A.L.K.E.R.: Anomaly")  //process.MainWindowTitle == "S.T.A.L.K.E.R.: Call of Pripyat"  could be used for CoP and SoC if gamedata is modified to work with it.
                     {
-                        string path = Path.GetDirectoryName(process.GetProcessPath());
-                        if (File.Exists(Path.Combine(path, CRCOptions.InPath)))
+                        string? path = Path.GetDirectoryName(process.GetProcessPath());
+                        if (path is not null && File.Exists(Path.Combine(path, CRCOptions.InPath)))
                         {
                             gamePath = path;
                             firstClear = false;
@@ -84,7 +84,7 @@ namespace Chernobyl_Relay_Chat
 
         public static void GameUpdate()
         {
-            if (disable || processID == -1) return;
+            if (disable || processID == -1 || gamePath is null) return;
 
             // Wipe game output when first discovered
             if (!firstClear)
@@ -152,7 +152,7 @@ namespace Chernobyl_Relay_Chat
                         CRCClient.UpdateSettings();
                         if (CRCOptions.GameFaction != "actor_zombied")
                         {
-                            string message = CRCStrings.DeathMessage(CRCOptions.Name, level, xrClass, section);
+                            string message = CRCStrings.DeathMessage(CRCOptions.Name ?? string.Empty, level, xrClass, section);
                             CRCClient.SendDeath(message);
                         }
                     }

@@ -290,7 +290,7 @@ namespace Chernobyl_Relay_Chat
                     return;
                 if (message.Contains(CRCOptions.Name))
                 {
-                    SystemSounds.Asterisk.Play();
+                    try { Console.Beep(); } catch { }
                     CRCDisplay.OnHighlightMessage(nick, message);
                     CRCGame.OnHighlightMessage(nick, faction, message);
                 }
