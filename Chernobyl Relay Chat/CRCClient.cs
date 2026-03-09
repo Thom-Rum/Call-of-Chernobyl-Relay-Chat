@@ -64,8 +64,7 @@ namespace Chernobyl_Relay_Chat
                 CRCDisplay.Stop();
             }
 #if DEBUG
-            debug.Invoke(new Action(() => debug.Close()));
-            debugThread.Join();
+            Dispatcher.UIThread.Post(() => debug.Close());
 #endif
         }
 
@@ -220,7 +219,7 @@ namespace Chernobyl_Relay_Chat
             }
         }
 
-        private static void OnConnected(object sender, EventArgs e)
+        private static void OnConnected(object? sender, EventArgs e)
         {
             Users.Clear();
             crcNicks.Clear();
@@ -242,7 +241,7 @@ namespace Chernobyl_Relay_Chat
             client.SendMessage(SendType.CtcpRequest, e.Data.Channel, "CLIENTINFO");
         }
 
-        private static void OnDisconnected(object sender, EventArgs e)
+        private static void OnDisconnected(object? sender, EventArgs e)
         {
             if (retry)
             {

@@ -19,7 +19,7 @@ namespace Chernobyl_Relay_Chat
                 // Load settings; on first run, sensible defaults are used.
                 // Language / channel can be changed any time via Options.
                 CRCOptions.Load();
-                if (CRCOptions.Name == null)
+                if (string.IsNullOrEmpty(CRCOptions.Name))
                     CRCOptions.Name = CRCStrings.RandomIrcName(CRCOptions.GetFaction());
 
                 var clientDisplay = new ClientDisplay();

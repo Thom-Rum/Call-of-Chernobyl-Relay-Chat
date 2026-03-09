@@ -25,7 +25,7 @@ namespace Chernobyl_Relay_Chat
         public static bool AutoFaction = true;
         public static string GameFaction = "actor_stalker";
         public static string ManualFaction = "actor_stalker";
-        public static string? Name;
+        public static string Name = string.Empty;
         public static bool SendDeath = true;
         public static bool ReceiveDeath = true;
         public static int DeathInterval = 90;

@@ -152,7 +152,7 @@ namespace Chernobyl_Relay_Chat
                         CRCClient.UpdateSettings();
                         if (CRCOptions.GameFaction != "actor_zombied")
                         {
-                            string message = CRCStrings.DeathMessage(CRCOptions.Name ?? string.Empty, level, xrClass, section);
+                            string message = CRCStrings.DeathMessage(CRCOptions.Name, level, xrClass, section);
                             CRCClient.SendDeath(message);
                         }
                     }
