@@ -41,9 +41,5 @@
     <EmbeddedResource Include="Assets\res\snames.xml" />
   </ItemGroup>
 
-  <!-- Avalonia AXAML UI files -->
-  <ItemGroup>
-    <AvaloniaResource Include="**\*.axaml" />
-  </ItemGroup>
 
 </Project>
