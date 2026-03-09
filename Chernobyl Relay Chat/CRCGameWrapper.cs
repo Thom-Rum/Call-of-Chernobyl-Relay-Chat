@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Avalonia.Media;
 
 namespace Chernobyl_Relay_Chat
 {
@@ -16,6 +12,12 @@ namespace Chernobyl_Relay_Chat
         public void AddInformation(string message)
         {
             CRCGame.AddInformation(message);
+        }
+
+        // The game has no concept of brush colours; forward as plain information.
+        public void AddMessage(string nick, string message, IBrush nickBrush)
+        {
+            CRCGame.AddInformation(nick + ": " + message);
         }
     }
 }

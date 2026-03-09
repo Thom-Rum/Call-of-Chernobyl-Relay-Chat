@@ -1,6 +1,7 @@
 ﻿using Avalonia;
 using System;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 
 namespace Chernobyl_Relay_Chat
@@ -22,6 +23,10 @@ namespace Chernobyl_Relay_Chat
             if (!mutex.WaitOne(TimeSpan.FromSeconds(0), false))
                 return;
 #endif
+            // Register Windows-1251 and other non-Unicode encodings for CRCGame file I/O.
+            // Required on Linux/.NET 8 where only ASCII/UTF-8 are available by default.
+            Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
             CRCStrings.Load();
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
             CRCOptions.Save();
