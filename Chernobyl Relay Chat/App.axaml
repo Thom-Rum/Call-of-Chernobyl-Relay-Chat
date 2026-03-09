@@ -2,6 +2,10 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              x:Class="Chernobyl_Relay_Chat.App"
              RequestedThemeVariant="Dark">
+    <Application.Resources>
+        <!-- Graffiti font for the UI; Cyrillic falls back to the first system font that covers it -->
+        <FontFamily x:Key="GraffitiFont">avares://Chernobyl Relay Chat/Assets/Graffiti1CTT Regular.ttf#Graffiti1CTT,Segoe UI,DejaVu Sans,Arial</FontFamily>
+    </Application.Resources>
     <Application.Styles>
         <FluentTheme />
     </Application.Styles>

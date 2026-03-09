@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using System.Threading;
@@ -16,26 +17,44 @@ namespace Chernobyl_Relay_Chat
         {
             if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
             {
-                // Load settings; on first run, sensible defaults are used.
-                // Language / channel can be changed any time via Options.
-                CRCOptions.Load();
-                if (string.IsNullOrEmpty(CRCOptions.Name))
-                    CRCOptions.Name = CRCStrings.RandomIrcName(CRCOptions.GetFaction());
+                bool isFirstRun = !CRCOptions.Load();
 
-                var clientDisplay = new ClientDisplay();
-                CRCDisplay.SetWindow(clientDisplay);
-                desktop.MainWindow = clientDisplay;
-
-                // IRC client runs on its own background thread (client.Listen() is blocking)
-                var clientThread = new Thread(CRCClient.Start)
+                if (isFirstRun)
                 {
-                    IsBackground = true,
-                    Name = "IRC Client"
-                };
-                clientThread.Start();
+                    // Keep the app alive while the language prompt is open; a bare
+                    // OnLastWindowClose would shut down the moment the prompt closes
+                    // before the main window is created.
+                    desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
+                    var prompt = new LanguagePrompt();
+                    desktop.MainWindow = prompt;
+                    prompt.Closed += (_, _) =>
+                    {
+                        CRCOptions.Language = prompt.Result;
+                        CRCOptions.Channel  = prompt.Result == "eng" ? "#cocrc_english" : "#cocrc_slavik";
+                        desktop.ShutdownMode = ShutdownMode.OnLastWindowClose;
+                        LaunchMainApp(desktop);
+                    };
+                }
+                else
+                {
+                    LaunchMainApp(desktop);
+                }
             }
 
             base.OnFrameworkInitializationCompleted();
+        }
+
+        private static void LaunchMainApp(IClassicDesktopStyleApplicationLifetime desktop)
+        {
+            if (string.IsNullOrEmpty(CRCOptions.Name))
+                CRCOptions.Name = CRCStrings.RandomIrcName(CRCOptions.GetFaction());
+
+            var clientDisplay = new ClientDisplay();
+            CRCDisplay.SetWindow(clientDisplay);
+            desktop.MainWindow = clientDisplay;
+            clientDisplay.Show();
+
+            new Thread(CRCClient.Start) { IsBackground = true, Name = "IRC Client" }.Start();
         }
     }
 }

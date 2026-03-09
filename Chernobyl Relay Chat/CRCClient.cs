@@ -24,13 +24,14 @@ namespace Chernobyl_Relay_Chat
         public static List<string> Users = new List<string>();
 
 #if DEBUG
-        private static DebugDisplay debug = new DebugDisplay();
+        private static DebugDisplay? debug;
 #endif
 
         public static void Start()
         {
 #if DEBUG
-            Dispatcher.UIThread.Post(() => debug.Show());
+            // DebugDisplay is an Avalonia Window and must be created on the UI thread.
+            Dispatcher.UIThread.Post(() => { debug = new DebugDisplay(); debug.Show(); });
 #endif
             client.Encoding = Encoding.UTF8;
             client.SendDelay = 200;
@@ -64,7 +65,7 @@ namespace Chernobyl_Relay_Chat
                 CRCDisplay.Stop();
             }
 #if DEBUG
-            Dispatcher.UIThread.Post(() => debug.Close());
+            Dispatcher.UIThread.Post(() => debug?.Close());
 #endif
         }
 

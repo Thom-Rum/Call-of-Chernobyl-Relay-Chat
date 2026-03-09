@@ -27,7 +27,7 @@
 
   <!-- Embedded assets -->
   <ItemGroup>
-    <EmbeddedResource Include="Assets\Graffiti1CTT Regular.ttf" />
+    <AvaloniaResource Include="Assets\Graffiti1CTT Regular.ttf" />
     <EmbeddedResource Include="Assets\res\death_classes.xml" />
     <EmbeddedResource Include="Assets\res\death_formats.xml" />
     <EmbeddedResource Include="Assets\res\death_generic.xml" />

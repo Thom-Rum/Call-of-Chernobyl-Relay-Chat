@@ -3,7 +3,8 @@
         x:Class="Chernobyl_Relay_Chat.ClientDisplay"
         Title="Chernobyl Relay Chat"
         Width="800" Height="500"
-        MinWidth="400" MinHeight="250">
+        MinWidth="400" MinHeight="250"
+        FontFamily="{StaticResource GraffitiFont}">
     <DockPanel>
         <!-- Input bar at the bottom -->
         <DockPanel DockPanel.Dock="Bottom" Margin="4,4,4,4">
