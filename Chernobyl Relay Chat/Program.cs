@@ -21,6 +21,10 @@ namespace Chernobyl_Relay_Chat
         [STAThread]
         public static void Main(string[] args)
         {
+#if DEBUG
+            Console.WriteLine("[CRC] Main() entered");
+            Console.Out.Flush();
+#endif
 #if !DEBUG
             if (!mutex.WaitOne(TimeSpan.FromSeconds(0), false))
                 return;
@@ -43,8 +47,18 @@ namespace Chernobyl_Relay_Chat
 #endif
 
             CRCStrings.Load();
-            BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+#if DEBUG
+            Console.WriteLine("[CRC] CRCStrings.Load() complete, starting Avalonia...");
+            Console.Out.Flush();
+#endif
+            int avaloniaExitCode = BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
+#if DEBUG
+            Console.WriteLine($"[CRC] Avalonia lifetime ended (exit code {avaloniaExitCode}), saving options...");
+            Console.Out.Flush();
+#endif
             CRCOptions.Save();
+            if (avaloniaExitCode != 0)
+                Environment.Exit(avaloniaExitCode);
         }
 
         public static AppBuilder BuildAvaloniaApp()

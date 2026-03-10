@@ -86,10 +86,18 @@ namespace Chernobyl_Relay_Chat
             if (string.IsNullOrEmpty(CRCOptions.Name))
                 CRCOptions.Name = CRCStrings.RandomIrcName(CRCOptions.GetFaction());
 
+            Console.WriteLine("[CRC] LaunchMainApp: creating ClientDisplay...");
+            Console.Out.Flush();
             var clientDisplay = new ClientDisplay();
+            Console.WriteLine("[CRC] LaunchMainApp: ClientDisplay created, setting window...");
+            Console.Out.Flush();
             CRCDisplay.SetWindow(clientDisplay);
             desktop.MainWindow = clientDisplay;
+            Console.WriteLine("[CRC] LaunchMainApp: calling Show()...");
+            Console.Out.Flush();
             clientDisplay.Show();
+            Console.WriteLine("[CRC] LaunchMainApp: Show() returned, starting IRC thread...");
+            Console.Out.Flush();
 
             new Thread(CRCClient.Start) { IsBackground = true, Name = "IRC Client" }.Start();
         }

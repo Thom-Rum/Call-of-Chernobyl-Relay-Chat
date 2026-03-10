@@ -30,12 +30,18 @@ namespace Chernobyl_Relay_Chat
             // Ensure the Inlines collection is ready before any text is appended
             chatDisplay.Inlines ??= new InlineCollection();
 
-            // Restore saved window geometry
+            // Restore saved window geometry.
+            // Clamp to non-negative coordinates: negative values come from
+            // Windows multi-monitor setups where a monitor sits above/left of
+            // the primary, and they cause Linux compositors to silently close
+            // windows that are positioned entirely off-screen.
             if (CRCOptions.DisplayWidth > 0 && CRCOptions.DisplayHeight > 0)
             {
                 Width    = CRCOptions.DisplayWidth;
                 Height   = CRCOptions.DisplayHeight;
-                Position = new Avalonia.PixelPoint(CRCOptions.DisplayLocationX, CRCOptions.DisplayLocationY);
+                int safeX = Math.Max(0, CRCOptions.DisplayLocationX);
+                int safeY = Math.Max(0, CRCOptions.DisplayLocationY);
+                Position = new Avalonia.PixelPoint(safeX, safeY);
             }
 
             Closing += ClientDisplay_Closing;

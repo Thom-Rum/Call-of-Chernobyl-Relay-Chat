@@ -61,8 +61,11 @@ namespace Chernobyl_Relay_Chat
             }
             catch (CouldNotConnectException)
             {
+                // Show the error in the chat window but keep it open.
+                // Previously CRCDisplay.Stop() was called here, which closed the
+                // window immediately — making the app appear to silently crash on
+                // Linux when the initial IRC connection fails.
                 CRCDisplay.ShowError(CRCStrings.Localize("client_connection_error"));
-                CRCDisplay.Stop();
             }
 #if DEBUG
             Dispatcher.UIThread.Post(() => debug?.Close());
