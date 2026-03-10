@@ -1,5 +1,6 @@
 ﻿using Avalonia;
 using System;
+using System.Diagnostics;
 using System.IO;
 using System.Reflection;
 using System.Text;
@@ -31,12 +32,15 @@ namespace Chernobyl_Relay_Chat
             // Log any unhandled exceptions to crash.log so Linux crashes aren't silent.
             AppDomain.CurrentDomain.UnhandledException += (_, e) =>
             {
-                string msg = (e.ExceptionObject as Exception)?.ToString()
-                             ?? e.ExceptionObject?.ToString()
-                             ?? "Unknown error";
-                Console.Error.WriteLine(msg);
-                try { File.WriteAllText("crash.log", msg); } catch { }
+                var ex = e.ExceptionObject as Exception;
+                string msg = ex?.ToString() ?? e.ExceptionObject?.ToString() ?? "Unknown error";
+                App.LogCrash(ex ?? new Exception(msg));
             };
+
+#if DEBUG
+            // Make Avalonia's LogToTrace() output visible in the terminal.
+            Trace.Listeners.Add(new ConsoleTraceListener());
+#endif
 
             CRCStrings.Load();
             BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
