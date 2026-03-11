@@ -7,6 +7,7 @@ namespace Chernobyl_Relay_Chat
     public partial class DebugDisplay : Window
     {
         private readonly StringBuilder _rawSb = new StringBuilder();
+        private readonly object _lock = new object();
 
         public DebugDisplay()
         {
@@ -15,12 +16,17 @@ namespace Chernobyl_Relay_Chat
 
         public void AddRaw(string message)
         {
-            if (_rawSb.Length > 0)
-                _rawSb.Append('\n');
-            _rawSb.Append(message);
+            string text;
+            lock (_lock)
+            {
+                if (_rawSb.Length > 0)
+                    _rawSb.Append('\n');
+                _rawSb.Append(message);
+                text = _rawSb.ToString();
+            }
             Dispatcher.UIThread.Post(() =>
             {
-                textBoxRaw.Text = _rawSb.ToString();
+                textBoxRaw.Text = text;
                 textBoxRaw.CaretIndex = textBoxRaw.Text?.Length ?? 0;
                 scrollViewer.ScrollToEnd();
             });
