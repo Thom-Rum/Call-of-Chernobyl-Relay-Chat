@@ -22,8 +22,8 @@
 	</string>
 	
 	<string id="client_connection_error">
-		<eng>Could not connect to the IRC server; CRC will now shut down.\nTry running As Administrator or allowing CRC in your firewall.</eng>
-		<rus>Не удалось подключиться к IRC-серверу; CRC теперь будет закрыт.\nПопробуйте запустить с правами администратора или выставить CRC в исключения в брандмауэре.</rus>
+		<eng>Could not connect to the IRC server.\nCheck your network connection and firewall settings.</eng>
+		<rus>Не удалось подключиться к IRC-серверу.\nПроверьте сетевое подключение и настройки брандмауэра.</rus>
 	</string>
 	<string id="client_connected">
 		<eng>You are now connected to the network</eng>

@@ -2,6 +2,9 @@
 using Meebey.SmartIrc4net;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Net;
+using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -20,6 +23,7 @@ namespace Chernobyl_Relay_Chat
         private static DateTime lastDeath = new DateTime();
         private static string lastName, lastChannel, lastQuery, lastFaction;
         private static bool retry = false;
+        private static bool _usingSsl = false;
 
         public static List<string> Users = new List<string>();
 
@@ -33,43 +37,108 @@ namespace Chernobyl_Relay_Chat
             // DebugDisplay is an Avalonia Window and must be created on the UI thread.
             Dispatcher.UIThread.Post(() => { debug = new DebugDisplay(); debug.Show(); });
 #endif
+            // SmartIrc4net is a .NET Framework library that creates an IPv4-only socket
+            // internally. On Linux, DNS returns IPv6 addresses first (RFC 6724), so
+            // SmartIrc4net would try to connect IPv6 addresses with that IPv4 socket and
+            // throw CouldNotConnectException. Pre-resolving to IPv4 sidesteps this.
+            // The proper long-term fix is to replace SmartIrc4net with a .NET-native library.
+            string host = ResolveIPv4(CRCOptions.Server);
+
+            // Try SSL on port 6697 first, fall back to plain 6667.
+            // Recreate the client before the fallback attempt because SmartIrc4net
+            // leaves internal state dirty (_IsConnectionError) after a failed Connect().
+            SetupClient();
+            if (TryConnect(host, port: 6697, ssl: true))
+            {
+                _usingSsl = true;
+            }
+            else
+            {
+                client = new IrcClient();
+                SetupClient();
+                if (TryConnect(host, port: 6667, ssl: false))
+                {
+                    _usingSsl = false;
+                }
+                else
+                {
+                    CRCDisplay.ShowError(CRCStrings.Localize("client_connection_error"));
+#if DEBUG
+                    Dispatcher.UIThread.Post(() => debug?.Close());
+#endif
+                    return;
+                }
+            }
+
+            client.Listen();
+#if DEBUG
+            Dispatcher.UIThread.Post(() => debug?.Close());
+#endif
+        }
+
+        /// <summary>
+        /// Configures encoding, sync settings, and all event handlers on <see cref="client"/>.
+        /// Call after creating a fresh IrcClient instance.
+        /// </summary>
+        private static void SetupClient()
+        {
             client.Encoding = Encoding.UTF8;
             client.SendDelay = 200;
             client.ActiveChannelSyncing = true;
 
-            client.OnConnected += new EventHandler(OnConnected);
+            client.OnConnected           += new EventHandler(OnConnected);
             client.OnChannelActiveSynced += new IrcEventHandler(OnChannelActiveSynced);
-            client.OnRawMessage += new IrcEventHandler(OnRawMessage);
-            client.OnChannelMessage += new IrcEventHandler(OnChannelMessage);
-            client.OnQueryMessage += new IrcEventHandler(OnQueryMessage);
-            client.OnJoin += new JoinEventHandler(OnJoin);
-            client.OnPart += new PartEventHandler(OnPart);
-            client.OnQuit += new QuitEventHandler(OnQuit);
-            client.OnNickChange += new NickChangeEventHandler(OnNickChange);
-            client.OnErrorMessage += new IrcEventHandler(OnErrorMessage);
-            client.OnKick += new KickEventHandler(OnKick);
-            client.OnDisconnected += new EventHandler(OnDisconnected);
-            client.OnTopic += new TopicEventHandler(OnTopic);
-            client.OnTopicChange += new TopicChangeEventHandler(OnTopicChange);
-            client.OnCtcpRequest += new CtcpEventHandler(OnCtcpRequest);
-            client.OnCtcpReply += new CtcpEventHandler(OnCtcpReply);
+            client.OnRawMessage          += new IrcEventHandler(OnRawMessage);
+            client.OnChannelMessage      += new IrcEventHandler(OnChannelMessage);
+            client.OnQueryMessage        += new IrcEventHandler(OnQueryMessage);
+            client.OnJoin                += new JoinEventHandler(OnJoin);
+            client.OnPart                += new PartEventHandler(OnPart);
+            client.OnQuit                += new QuitEventHandler(OnQuit);
+            client.OnNickChange          += new NickChangeEventHandler(OnNickChange);
+            client.OnErrorMessage        += new IrcEventHandler(OnErrorMessage);
+            client.OnKick                += new KickEventHandler(OnKick);
+            client.OnDisconnected        += new EventHandler(OnDisconnected);
+            client.OnTopic               += new TopicEventHandler(OnTopic);
+            client.OnTopicChange         += new TopicChangeEventHandler(OnTopicChange);
+            client.OnCtcpRequest         += new CtcpEventHandler(OnCtcpRequest);
+            client.OnCtcpReply           += new CtcpEventHandler(OnCtcpReply);
+        }
 
+        /// <summary>
+        /// Attempts a single connection. Returns true on success, false on CouldNotConnectException.
+        /// </summary>
+        private static bool TryConnect(string host, int port, bool ssl)
+        {
             try
             {
-                client.Connect(CRCOptions.Server, 6667);
-                client.Listen();
+                client.UseSsl = ssl;
+                client.ValidateServerCertificate = false;
+                client.Connect(host, port);
+                return true;
             }
             catch (CouldNotConnectException)
             {
-                // Show the error in the chat window but keep it open.
-                // Previously CRCDisplay.Stop() was called here, which closed the
-                // window immediately — making the app appear to silently crash on
-                // Linux when the initial IRC connection fails.
-                CRCDisplay.ShowError(CRCStrings.Localize("client_connection_error"));
+                return false;
             }
-#if DEBUG
-            Dispatcher.UIThread.Post(() => debug?.Close());
-#endif
+        }
+
+        /// <summary>
+        /// Resolves <paramref name="hostname"/> to its first IPv4 address.
+        /// Falls back to the original string so CouldNotConnectException still triggers cleanly.
+        /// </summary>
+        private static string ResolveIPv4(string hostname)
+        {
+            try
+            {
+                string? ipv4 = Dns.GetHostAddresses(hostname)
+                    .FirstOrDefault(a => a.AddressFamily == AddressFamily.InterNetwork)
+                    ?.ToString();
+                return ipv4 ?? hostname;
+            }
+            catch
+            {
+                return hostname;
+            }
         }
 
         public static void Stop()
@@ -252,7 +321,8 @@ namespace Chernobyl_Relay_Chat
                 string message = CRCStrings.Localize("client_reconnecting");
                 CRCDisplay.AddInformation(message);
                 CRCGame.AddInformation(message);
-                client.Connect(CRCOptions.Server, 6667);
+                int port = _usingSsl ? 6697 : 6667;
+                TryConnect(ResolveIPv4(CRCOptions.Server), port, _usingSsl);
             }
         }
 
