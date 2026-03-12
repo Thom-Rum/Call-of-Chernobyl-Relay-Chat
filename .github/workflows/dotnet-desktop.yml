@@ -2,11 +2,6 @@
 #
 # Build strategy:
 #
-#   build-framework48  (master only)
-#     Targets .NET Framework 4.8 using MSBuild.
-#     .NET Framework is Windows-only, so this job always runs on windows-latest.
-#     Uses the classic packages.config / NuGet restore flow.
-#
 #   build-net8  (master + dotnet-uplift)
 #     Targets .NET 8 using the dotnet CLI.
 #     Publishes self-contained binaries for linux-x64 and win-x64.
@@ -25,90 +20,9 @@ env:
   PROJECT_DIRECTORY:  "Chernobyl Relay Chat"
 
 # ---------------------------------------------------------------------------
-# JOB 1 – .NET Framework 4.8  (MSBuild, Windows only)
+# JOB 1 – .NET 8 multi-platform  (Avalonia, Linux + Windows)
 # ---------------------------------------------------------------------------
 jobs:
-  build-framework48:
-    name: Build (.NET Framework 4.8 · ${{ matrix.configuration }})
-    if: github.ref == 'refs/heads/master' || github.base_ref == 'master'
-    runs-on: windows-latest
-
-    strategy:
-      matrix:
-        configuration: [Debug, Release]
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
-      # MSBuild is required for old-style (.NET Framework) projects
-      - name: Setup MSBuild
-        uses: microsoft/setup-msbuild@v2
-
-      # NuGet CLI is required for packages.config restore
-      - name: Setup NuGet
-        uses: NuGet/setup-nuget@v2
-
-      - name: Restore NuGet packages
-        run: nuget restore "${{ env.SOLUTION_NAME }}"
-
-      - name: Build (${{ matrix.configuration }})
-        run: |
-          msbuild "${{ env.SOLUTION_NAME }}" `
-            /p:Configuration=${{ matrix.configuration }} `
-            /p:Platform="Any CPU" `
-            /m
-
-      # ── Security ──────────────────────────────────────────────────────────
-
-      # Install a .NET SDK so the audit/trivy steps can use the dotnet CLI
-      - name: Install .NET SDK (for security tooling)
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: 8.0.x
-
-      - name: .NET vulnerability audit
-        run: dotnet list "${{ env.PROJECT_DIRECTORY }}" package --vulnerable --include-transitive
-        continue-on-error: true
-
-      - name: Microsoft Security DevOps
-        uses: microsoft/security-devops-action@v1.6.0
-        id: msdo
-        continue-on-error: true
-
-      - name: Trivy filesystem scan
-        uses: aquasecurity/trivy-action@master
-        with:
-          scan-type: fs
-          scan-ref: .
-          format: table
-          severity: CRITICAL
-        continue-on-error: true
-
-      # ── Artifacts ─────────────────────────────────────────────────────────
-
-      - name: Stage release package
-        if: matrix.configuration == 'Release'
-        shell: bash
-        run: |
-          mkdir -p release-package
-          cp -r "Chernobyl Relay Chat/bin/Release/." release-package/
-          cp -r gamedata release-package/
-
-      - name: Upload build artifacts (${{ matrix.configuration }})
-        if: matrix.configuration == 'Release'
-        uses: actions/upload-artifact@v4
-        with:
-          name: cocrc-net48-win-x64-${{ matrix.configuration }}
-          path: release-package/
-
-
-# ---------------------------------------------------------------------------
-# JOB 2 – .NET 8 multi-platform  (Avalonia, Linux + Windows)
-# ---------------------------------------------------------------------------
-
   build-net8:
     name: Build (.NET 8 · ${{ matrix.os }} · ${{ matrix.configuration }})
     runs-on: ${{ matrix.os }}
@@ -116,7 +30,7 @@ jobs:
     strategy:
       matrix:
         configuration: [Debug, Release]
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - name: Checkout
@@ -147,7 +61,7 @@ jobs:
         continue-on-error: true
 
       - name: Microsoft Security DevOps
-        uses: microsoft/security-devops-action@v1.6.0
+        uses: microsoft/security-devops-action@v1.12.0
         id: msdo
         continue-on-error: true
 
@@ -168,6 +82,10 @@ jobs:
         if: matrix.os == 'windows-latest'
         run: dotnet publish "${{ env.PROJECT_PATH }}" -r win-x64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/win-x64
 
+      - name: Publish macOS (osx-arm64)
+        if: matrix.os == 'macos-latest'
+        run: dotnet publish "${{ env.PROJECT_PATH }}" -r osx-arm64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/osx-arm64
+
       - name: Upload Linux artifact
         if: matrix.os == 'ubuntu-latest'
         uses: actions/upload-artifact@v4
@@ -181,3 +99,10 @@ jobs:
         with:
           name: cocrc-net8-win-x64-${{ matrix.configuration }}
           path: ./publish/win-x64/
+
+      - name: Upload macOS artifact
+        if: matrix.os == 'macos-latest' && matrix.configuration == 'Release'
+        uses: actions/upload-artifact@v4
+        with:
+          name: cocrc-net8-osx-arm64-${{ matrix.configuration }}
+          path: ./publish/osx-arm64/
