@@ -77,7 +77,7 @@ namespace Chernobyl_Relay_Chat
             [PhysicalKey.NumPadMultiply] = "MULTIPLY",
             [PhysicalKey.NumPadDivide]   = "DIVIDE",
             // Control keys
-            [PhysicalKey.Return]    = "RETURN",
+            [PhysicalKey.Enter]     = "RETURN",
             [PhysicalKey.Escape]    = "ESCAPE",
             [PhysicalKey.Tab]       = "TAB",
             [PhysicalKey.Space]     = "SPACE",
