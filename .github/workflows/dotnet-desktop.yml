@@ -76,15 +76,30 @@ jobs:
 
       - name: Publish Linux (linux-x64)
         if: matrix.os == 'ubuntu-latest'
-        run: dotnet publish "${{ env.PROJECT_PATH }}" -r linux-x64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/linux-x64
+        run: dotnet publish "${{ env.PROJECT_PATH }}" -r linux-x64 --self-contained true -p:PublishSingleFile=true --configuration ${{ matrix.configuration }} -o ./publish/linux-x64
+
+      - name: Copy gamedata (Linux)
+        if: matrix.os == 'ubuntu-latest'
+        shell: bash
+        run: cp -r gamedata ./publish/linux-x64/gamedata
 
       - name: Publish Windows (win-x64)
         if: matrix.os == 'windows-latest'
-        run: dotnet publish "${{ env.PROJECT_PATH }}" -r win-x64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/win-x64
+        run: dotnet publish "${{ env.PROJECT_PATH }}" -r win-x64 --self-contained true -p:PublishSingleFile=true --configuration ${{ matrix.configuration }} -o ./publish/win-x64
+
+      - name: Copy gamedata (Windows)
+        if: matrix.os == 'windows-latest'
+        shell: bash
+        run: cp -r gamedata ./publish/win-x64/gamedata
 
       - name: Publish macOS (osx-arm64)
         if: matrix.os == 'macos-latest'
-        run: dotnet publish "${{ env.PROJECT_PATH }}" -r osx-arm64 --self-contained true --configuration ${{ matrix.configuration }} -o ./publish/osx-arm64
+        run: dotnet publish "${{ env.PROJECT_PATH }}" -r osx-arm64 --self-contained true -p:PublishSingleFile=true --configuration ${{ matrix.configuration }} -o ./publish/osx-arm64
+
+      - name: Copy gamedata (macOS)
+        if: matrix.os == 'macos-latest'
+        shell: bash
+        run: cp -r gamedata ./publish/osx-arm64/gamedata
 
       - name: Upload Linux artifact
         if: matrix.os == 'ubuntu-latest'
