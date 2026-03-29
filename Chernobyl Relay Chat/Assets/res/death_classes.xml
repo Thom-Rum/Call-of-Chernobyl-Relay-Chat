@@ -329,6 +329,10 @@
 		<ZOMBIED>
 			<string>Зомбированные убили</string>
 		</ZOMBIED>
+		<RENEGADE>
+			<string>Убит ренегатом</string>
+			<string>Ограблен ренегатом</string>
+		</RENEGADE>
 		<ARENA_ENEMY>
 			<string>Погиб на Арене</string>
 			<string>Умер на Арене</string>
