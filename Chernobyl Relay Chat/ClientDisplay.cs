@@ -148,7 +148,7 @@ namespace Chernobyl_Relay_Chat
                     FontWeight = FontWeight.Bold,
                     Foreground = nickBrush
                 });
-                chatDisplay.Inlines.Add(new Run { Text = message, Foreground = Brushes.White });
+                chatDisplay.Inlines!.Add(new Run { Text = message, Foreground = new SolidColorBrush(Color.FromRgb(240, 217, 182)) });
                 chatScrollViewer.ScrollToEnd();
             });
         }
@@ -156,7 +156,7 @@ namespace Chernobyl_Relay_Chat
         public void AddHighlightMessage(string nick, string message)
         {
             // TODO: per-line background colour (not trivial with TextBlock Inlines)
-            AddMessage("[!] " + nick, message, Brushes.Yellow);
+            AddMessage("[!] " + nick, message, CRCDisplay.NickBrush);
         }
 
         public void UpdateUsers(List<string> users)

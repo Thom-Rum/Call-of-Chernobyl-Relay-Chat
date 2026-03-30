@@ -9,6 +9,9 @@ namespace Chernobyl_Relay_Chat
     {
         private static ClientDisplay? clientDisplay;
 
+        // SoC-style amber-orange used for NPC/speaker names in Shadow of Chernobyl
+        internal static readonly IBrush NickBrush = new SolidColorBrush(Color.FromRgb(206, 143, 63));
+
         /// <summary>Called by App.OnFrameworkInitializationCompleted to register the main window.</summary>
         public static void SetWindow(ClientDisplay window)
         {
@@ -53,19 +56,19 @@ namespace Chernobyl_Relay_Chat
 
         public static void OnChannelMessage(string nick, string message)
         {
-            clientDisplay?.AddMessage(nick, message, Brushes.Black);
+            clientDisplay?.AddMessage(nick, message, NickBrush);
         }
 
         public static void OnOwnChannelMessage(string nick, string message)
         {
-            clientDisplay?.AddMessage(nick, message, Brushes.Gray);
+            clientDisplay?.AddMessage(nick, message, NickBrush);
         }
 
         public static void OnQueryMessage(string from, string to, string message)
         {
             // Notification sound: Console.Beep() is cross-platform (no-op if no bell available)
             try { Console.Beep(); } catch { }
-            clientDisplay?.AddMessage(from + " -> " + to, message, Brushes.DeepPink);
+            clientDisplay?.AddMessage(from + " -> " + to, message, NickBrush);
         }
 
         public static void OnGotKicked()
