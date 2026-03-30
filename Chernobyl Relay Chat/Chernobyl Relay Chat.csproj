@@ -6,6 +6,7 @@
     <AssemblyName>Chernobyl Relay Chat</AssemblyName>
     <Nullable>enable</Nullable>
     <ApplicationIcon>PDA.ico</ApplicationIcon>
+    <Version>0.10.0</Version>
   </PropertyGroup>
 
   <!-- NuGet packages -->
