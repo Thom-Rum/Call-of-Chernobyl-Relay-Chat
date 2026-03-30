@@ -1,5 +1,5 @@
 --| Call of Chernobyl Relay Chat
---| Version 0.9.4
+--| Version 0.10.0
 --| By Thom-Rum
 --| https://github.com/Thom-Rum/Call-Of-Chernobyl-Relay-Chat/
 

@@ -1,205 +1,155 @@
-﻿using System;
+﻿using Avalonia.Controls;
+using System;
 using System.Collections.Generic;
-using System.Windows.Forms;
 
 namespace Chernobyl_Relay_Chat
 {
-    public partial class OptionsForm : Form
+    public partial class OptionsForm : Window
     {
         public OptionsForm()
         {
             InitializeComponent();
-            Text = CRCStrings.Localize("options_title");
-            buttonOK.Text = CRCStrings.Localize("options_ok");
-            buttonCancel.Text = CRCStrings.Localize("options_cancel");
-            tabControl1.TabPages[0].Text = CRCStrings.Localize("options_tab_client");
-            tabControl1.TabPages[1].Text = CRCStrings.Localize("options_tab_game");
 
-            labelLanguage.Text = CRCStrings.Localize("options_language");
-            labelChannel.Text = CRCStrings.Localize("options_channel");
-            radioButtonFactionAuto.Text = CRCStrings.Localize("options_auto_faction");
-            radioButtonFactionManual.Text = CRCStrings.Localize("options_manual_faction");
-            labelName.Text = CRCStrings.Localize("options_name");
-            buttonRandom.Text = CRCStrings.Localize("options_name_random");
-            checkBoxTimestamps.Text = CRCStrings.Localize("options_timestamps");
-            checkBoxDeathSend.Text = CRCStrings.Localize("options_send_deaths");
-            checkBoxDeathReceive.Text = CRCStrings.Localize("options_receive_deaths");
-            labelDeathInterval.Text = CRCStrings.Localize("options_death_interval");
-            labelDeathSeconds.Text = CRCStrings.Localize("crc_seconds");
+            Title = CRCStrings.Localize("options_title");
+            buttonOK.Content     = CRCStrings.Localize("options_ok");
+            buttonCancel.Content = CRCStrings.Localize("options_cancel");
 
-            labelNewsDuration.Text = CRCStrings.Localize("options_news_duration");
-            labelNewsSeconds.Text = CRCStrings.Localize("crc_seconds");
-            labelChatKey.Text = CRCStrings.Localize("options_chat_key");
-            buttonChatKey.Text = CRCStrings.Localize("options_chat_key_change");
-            checkBoxNewsSound.Text = CRCStrings.Localize("options_news_sound");
-            checkBoxCloseChat.Text = CRCStrings.Localize("options_close_chat");
-        }
+            tabPageClient.Header = CRCStrings.Localize("options_tab_client");
+            tabPageGame.Header   = CRCStrings.Localize("options_tab_game");
 
-        private void OptionsForm_Load(object sender, EventArgs e)
-        {
-            comboBoxLanguage.SelectedIndex = languageToIndex.ContainsKey(CRCOptions.Language) ? languageToIndex[CRCOptions.Language] : 0;
-            comboBoxChannel.SelectedIndex = channelToIndex.ContainsKey(CRCOptions.Channel) ? channelToIndex[CRCOptions.Channel] : 0;
-            radioButtonFactionAuto.Checked = CRCOptions.AutoFaction;
-            radioButtonFactionManual.Checked = !CRCOptions.AutoFaction;
-            textBoxName.Text = CRCOptions.Name;
-            comboBoxFaction.SelectedIndex = factionToIndex[CRCOptions.ManualFaction];
-            checkBoxTimestamps.Checked = CRCOptions.ShowTimestamps;
-            checkBoxDeathSend.Checked = CRCOptions.SendDeath;
-            checkBoxDeathReceive.Checked = CRCOptions.ReceiveDeath;
-            numericUpDownDeath.Value = CRCOptions.DeathInterval;
+            labelLanguage.Text          = CRCStrings.Localize("options_language");
+            labelChannel.Text           = CRCStrings.Localize("options_channel");
+            radioButtonFactionAuto.Content   = CRCStrings.Localize("options_auto_faction");
+            radioButtonFactionManual.Content = CRCStrings.Localize("options_manual_faction");
+            labelName.Text              = CRCStrings.Localize("options_name");
+            buttonRandom.Content        = CRCStrings.Localize("options_name_random");
+            checkBoxTimestamps.Content  = CRCStrings.Localize("options_timestamps");
+            checkBoxDeathSend.Content   = CRCStrings.Localize("options_send_deaths");
+            checkBoxDeathReceive.Content = CRCStrings.Localize("options_receive_deaths");
+            labelDeathInterval.Text     = CRCStrings.Localize("options_death_interval");
+            labelNewsDuration.Text      = CRCStrings.Localize("options_news_duration");
+            labelChatKey.Text           = CRCStrings.Localize("options_chat_key");
+            buttonChatKey.Content       = CRCStrings.Localize("options_chat_key_change");
+            checkBoxNewsSound.Content   = CRCStrings.Localize("options_news_sound");
+            checkBoxCloseChat.Content   = CRCStrings.Localize("options_close_chat");
 
-            numericUpDownNewsDuration.Value = CRCOptions.NewsDuration;
-            textBoxChatKey.Text = CRCOptions.ChatKey;
-            checkBoxCloseChat.Checked = CRCOptions.CloseChat;
-            checkBoxNewsSound.Checked = CRCOptions.NewsSound;
-        }
-
-        private void buttonOK_Click(object sender, EventArgs e)
-        {
-            string name = textBoxName.Text.Replace(' ', '_');
-            string result = CRCStrings.ValidateNick(name);
-            if (result != null)
+            // Mutual exclusion for radio buttons (no GroupName in AXAML)
+            radioButtonFactionAuto.IsCheckedChanged += (_, _) =>
             {
-                MessageBox.Show(result, CRCStrings.Localize("crc_error"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+                if (radioButtonFactionAuto.IsChecked == true)
+                    radioButtonFactionManual.IsChecked = false;
+                comboBoxFaction.IsEnabled = radioButtonFactionManual.IsChecked == true;
+            };
+            radioButtonFactionManual.IsCheckedChanged += (_, _) =>
+            {
+                if (radioButtonFactionManual.IsChecked == true)
+                    radioButtonFactionAuto.IsChecked = false;
+                comboBoxFaction.IsEnabled = radioButtonFactionManual.IsChecked == true;
+            };
+            checkBoxDeathReceive.IsCheckedChanged += (_, _) =>
+                numericUpDownDeath.IsEnabled = checkBoxDeathReceive.IsChecked == true;
+
+            buttonOK.Click     += ButtonOK_Click;
+            buttonCancel.Click += (_, _) => Close();
+            buttonRandom.Click += ButtonRandom_Click;
+            buttonChatKey.Click += async (_, _) =>
+            {
+                var kp = new KeyPromptForm();
+                await kp.ShowDialog(this);
+                if (kp.Result != null)
+                    textBoxChatKey.Text = kp.Result;
+            };
+
+            // Load current settings
+            comboBoxLanguage.SelectedIndex = languageToIndex.GetValueOrDefault(CRCOptions.Language, 0);
+            comboBoxChannel.SelectedIndex  = channelToIndex.GetValueOrDefault(CRCOptions.Channel, 0);
+            radioButtonFactionAuto.IsChecked   = CRCOptions.AutoFaction;
+            radioButtonFactionManual.IsChecked = !CRCOptions.AutoFaction;
+            comboBoxFaction.SelectedIndex = factionToIndex.GetValueOrDefault(CRCOptions.ManualFaction, 5);
+            comboBoxFaction.IsEnabled = !CRCOptions.AutoFaction;
+            textBoxName.Text            = CRCOptions.Name;
+            checkBoxTimestamps.IsChecked = CRCOptions.ShowTimestamps;
+            checkBoxDeathSend.IsChecked  = CRCOptions.SendDeath;
+            checkBoxDeathReceive.IsChecked = CRCOptions.ReceiveDeath;
+            numericUpDownDeath.Value    = CRCOptions.DeathInterval;
+            numericUpDownDeath.IsEnabled = CRCOptions.ReceiveDeath;
+            numericUpDownNewsDuration.Value = CRCOptions.NewsDuration;
+            textBoxChatKey.Text         = CRCOptions.ChatKey;
+            checkBoxNewsSound.IsChecked = CRCOptions.NewsSound;
+            checkBoxCloseChat.IsChecked = CRCOptions.CloseChat;
+        }
+
+        private void ButtonOK_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
+        {
+            string name = (textBoxName.Text ?? "").Replace(' ', '_');
+            string? error = CRCStrings.ValidateNick(name);
+            if (error != null)
+            {
+                // No modal dialog in cross-platform Avalonia without extra packages;
+                // show as info in the chat window and keep options open
+                CRCDisplay.AddInformation(error);
                 return;
             }
 
             string lang = indexToLanguage[comboBoxLanguage.SelectedIndex];
-            if(lang != CRCOptions.Language)
+            if (lang != CRCOptions.Language)
             {
                 CRCOptions.Language = lang;
-                MessageBox.Show(CRCStrings.Localize("options_language_restart"), CRCStrings.Localize("crc_name"), MessageBoxButtons.OK, MessageBoxIcon.Exclamation);
+                CRCDisplay.AddInformation(CRCStrings.Localize("options_language_restart"));
             }
-            
-            CRCOptions.Channel = indexToChannel[comboBoxChannel.SelectedIndex];
-            CRCOptions.AutoFaction = radioButtonFactionAuto.Checked;
-            CRCOptions.ManualFaction = indexToFaction[comboBoxFaction.SelectedIndex];
-            CRCOptions.Name = name;
-            CRCOptions.ShowTimestamps = checkBoxTimestamps.Checked;
-            CRCOptions.SendDeath = checkBoxDeathSend.Checked;
-            CRCOptions.ReceiveDeath = checkBoxDeathReceive.Checked;
-            CRCOptions.DeathInterval = (int)numericUpDownDeath.Value;
 
-            CRCOptions.NewsDuration = (int)numericUpDownNewsDuration.Value;
-            CRCOptions.ChatKey = textBoxChatKey.Text;
-            CRCOptions.NewsSound = checkBoxNewsSound.Checked;
-            CRCOptions.CloseChat = checkBoxCloseChat.Checked;
+            CRCOptions.Channel      = indexToChannel.GetValueOrDefault(comboBoxChannel.SelectedIndex, "#cocrc_english");
+            CRCOptions.AutoFaction  = radioButtonFactionAuto.IsChecked == true;
+            CRCOptions.ManualFaction = indexToFaction.GetValueOrDefault(comboBoxFaction.SelectedIndex, "actor_stalker");
+            CRCOptions.Name         = name;
+            CRCOptions.ShowTimestamps = checkBoxTimestamps.IsChecked == true;
+            CRCOptions.SendDeath    = checkBoxDeathSend.IsChecked == true;
+            CRCOptions.ReceiveDeath = checkBoxDeathReceive.IsChecked == true;
+            CRCOptions.DeathInterval = (int)(numericUpDownDeath.Value ?? 90);
+            CRCOptions.NewsDuration = (int)(numericUpDownNewsDuration.Value ?? 10);
+            CRCOptions.ChatKey      = textBoxChatKey.Text ?? "RETURN";
+            CRCOptions.NewsSound    = checkBoxNewsSound.IsChecked == true;
+            CRCOptions.CloseChat    = checkBoxCloseChat.IsChecked == true;
 
             CRCOptions.Save();
             CRCClient.UpdateSettings();
             CRCGame.UpdateSettings();
-            this.Close();
+            Close();
         }
 
-        private void buttonCancel_Click(object sender, EventArgs e)
+        private void ButtonRandom_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
         {
-            this.Close();
-        }
-
-        private void buttonRandom_Click(object sender, EventArgs e)
-        {
-            string faction = radioButtonFactionAuto.Checked ? CRCOptions.GameFaction : indexToFaction[comboBoxFaction.SelectedIndex];
+            string faction = radioButtonFactionAuto.IsChecked == true
+                ? CRCOptions.GameFaction
+                : indexToFaction.GetValueOrDefault(comboBoxFaction.SelectedIndex, "actor_stalker");
             textBoxName.Text = CRCStrings.RandomIrcName(faction);
         }
 
-        private void radioButtonFactionManual_CheckedChanged(object sender, EventArgs e)
-        {
-            comboBoxFaction.Enabled = radioButtonFactionManual.Checked;
-        }
+        // ── index ↔ key dictionaries ──────────────────────────────────────────
 
-        private void checkBoxDeathReceive_CheckedChanged(object sender, EventArgs e)
-        {
-            numericUpDownDeath.Enabled = checkBoxDeathReceive.Checked;
-        }
+        private readonly Dictionary<string, int> languageToIndex = new() { ["eng"] = 0, ["ukr"] = 1, ["rus"] = 2 };
+        private readonly Dictionary<int, string> indexToLanguage = new() { [0] = "eng", [1] = "ukr", [2] = "rus" };
 
-        private void buttonChatKey_Click(object sender, EventArgs e)
+        private readonly Dictionary<string, int> channelToIndex = new()
         {
-            using (KeyPromptForm keyPromptForm = new KeyPromptForm())
-            {
-                keyPromptForm.ShowDialog();
-                if (keyPromptForm.Result != null)
-                    textBoxChatKey.Text = keyPromptForm.Result;
-            }
-        }
-
-        private readonly Dictionary<string, int> languageToIndex = new Dictionary<string, int>()
+            ["#cocrc_english"] = 0, ["#cocrc_english_rp"] = 1, ["#cocrc_slavik"] = 2,
+        };
+        private readonly Dictionary<int, string> indexToChannel = new()
         {
-            ["eng"] = 0,
-            ["ukr"] = 1,
-            ["rus"] = 2,
+            [0] = "#cocrc_english", [1] = "#cocrc_english_rp", [2] = "#cocrc_slavik",
         };
 
-        private readonly Dictionary<int, string> indexToLanguage = new Dictionary<int, string>()
+        private readonly Dictionary<string, int> factionToIndex = new()
         {
-            [0] = "eng",
-            [1] = "ukr",
-            [2] = "rus",
+            ["actor_bandit"] = 0, ["actor_csky"] = 1, ["actor_dolg"] = 2, ["actor_ecolog"] = 3,
+            ["actor_freedom"] = 4, ["actor_stalker"] = 5, ["actor_killer"] = 6,
+            ["actor_army"] = 7, ["actor_monolith"] = 8, ["actor_renegade"] = 9,
         };
-
-        private readonly Dictionary<string, int> channelToIndex = new Dictionary<string, int>()
+        private readonly Dictionary<int, string> indexToFaction = new()
         {
-            ["#cocrc_english"] = 0,
-            ["#cocrc_english_rp"] = 1,
-            ["#cocrc_slavik"] = 2,
-            //["#crc_russian_rp"] = 4,
-            //["#crc_tech_support"] = 5,
+            [0] = "actor_bandit", [1] = "actor_csky", [2] = "actor_dolg", [3] = "actor_ecolog",
+            [4] = "actor_freedom", [5] = "actor_stalker", [6] = "actor_killer",
+            [7] = "actor_army", [8] = "actor_monolith", [9] = "actor_renegade",
         };
-
-        private readonly Dictionary<int, string> indexToChannel = new Dictionary<int, string>()
-        {
-            [0] = "#cocrc_english",
-            [1] = "#cocrc_english_rp",
-            [2] = "#cocrc_slavik",
-            //[4] = "#crc_russian_rp",
-            //[5] = "#crc_tech_support",
-        };
-
-        private readonly Dictionary<string, int> factionToIndex = new Dictionary<string, int>()
-        {
-            ["actor_bandit"] = 0,
-            ["actor_csky"] = 1,
-            ["actor_dolg"] = 2,
-            ["actor_ecolog"] = 3,
-            ["actor_freedom"] = 4,
-            ["actor_stalker"] = 5,
-            ["actor_killer"] = 6,
-            ["actor_army"] = 7,
-            ["actor_monolith"] = 8,
-            ["actor_renegade"] = 9,
-        };
-
-        private readonly Dictionary<int, string> indexToFaction = new Dictionary<int, string>()
-        {
-            [0] = "actor_bandit",
-            [1] = "actor_csky",
-            [2] = "actor_dolg",
-            [3] = "actor_ecolog",
-            [4] = "actor_freedom",
-            [5] = "actor_stalker",
-            [6] = "actor_killer",
-            [7] = "actor_army",
-            [8] = "actor_monolith",
-            [9] = "actor_renegade",
-        };
-
-        private void comboBoxLanguage_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void tabPageClient_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void comboBoxFaction_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
-
-        private void comboBoxChannel_SelectedIndexChanged(object sender, EventArgs e)
-        {
-
-        }
     }
 }

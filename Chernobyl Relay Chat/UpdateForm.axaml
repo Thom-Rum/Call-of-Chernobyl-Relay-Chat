@@ -1,0 +1,22 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="Chernobyl_Relay_Chat.UpdateForm"
+        Title="Update Available"
+        Width="520" Height="400"
+        WindowStartupLocation="CenterScreen">
+    <DockPanel Margin="8">
+        <StackPanel DockPanel.Dock="Bottom" Orientation="Horizontal"
+                    HorizontalAlignment="Right" Margin="0,8,0,0" Spacing="8">
+            <Button Name="buttonDownload">Download Update</Button>
+            <Button Name="buttonClose">Close</Button>
+        </StackPanel>
+        <StackPanel DockPanel.Dock="Top" Margin="0,0,0,8" Spacing="4">
+            <TextBlock Name="labelDescription" TextWrapping="Wrap" />
+            <TextBlock Name="labelGamedata"    TextWrapping="Wrap" Foreground="Orange" />
+            <TextBlock Name="labelReleaseNotes" FontWeight="Bold" Margin="0,4,0,0">Release Notes:</TextBlock>
+        </StackPanel>
+        <ScrollViewer>
+            <TextBlock Name="textNotes" TextWrapping="Wrap" />
+        </ScrollViewer>
+    </DockPanel>
+</Window>

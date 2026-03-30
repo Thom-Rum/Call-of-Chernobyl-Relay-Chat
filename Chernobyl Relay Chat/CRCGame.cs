@@ -6,7 +6,6 @@ using System.IO;
 using System.Security;
 using System.Text;
 using System.Text.RegularExpressions;
-using System.Windows.Forms;
 
 namespace Chernobyl_Relay_Chat
 {
@@ -21,24 +20,15 @@ namespace Chernobyl_Relay_Chat
 
         private static bool disable = false;
         private static int processID = -1;
-        private static string gamePath;
+        private static string? gamePath;
         private static bool firstClear = false;
         private static StringBuilder sendQueue = new StringBuilder();
         private static object queueLock = new object();
 
-        private static ClientDisplay display;
-        private static CRCClient client;
-
-        public CRCGame(ClientDisplay clientDisplay, CRCClient crcClient)
-        {
-            display = clientDisplay;
-            client = crcClient;
-        }
-
         private static void Disable()
         {
             disable = true;
-            MessageBox.Show(CRCStrings.Localize("game_file_error"), CRCStrings.Localize("crc_name"), MessageBoxButtons.OK, MessageBoxIcon.Error);
+            CRCDisplay.ShowError(CRCStrings.Localize("game_file_error"));
         }
 
         public static void GameCheck()
@@ -66,8 +56,8 @@ namespace Chernobyl_Relay_Chat
                 {
                     if (process.ProcessName == "xrEngine")
                     {
-                        string path = Path.GetDirectoryName(process.GetProcessPath());
-                        if (File.Exists(path + CRCOptions.InPath))
+                        string? path = Path.GetDirectoryName(process.GetProcessPath());
+                        if (path is not null && File.Exists(Path.Combine(path, CRCOptions.InPath)))
                         {
                             gamePath = path;
                             firstClear = false;
@@ -78,8 +68,8 @@ namespace Chernobyl_Relay_Chat
                     }
                     else if (process.MainWindowTitle == "S.T.A.L.K.E.R.: Anomaly")  //process.MainWindowTitle == "S.T.A.L.K.E.R.: Call of Pripyat"  could be used for CoP and SoC if gamedata is modified to work with it.
                     {
-                        string path = Path.GetDirectoryName(process.GetProcessPath());
-                        if (File.Exists(path + CRCOptions.InPath))
+                        string? path = Path.GetDirectoryName(process.GetProcessPath());
+                        if (path is not null && File.Exists(Path.Combine(path, CRCOptions.InPath)))
                         {
                             gamePath = path;
                             firstClear = false;
@@ -94,14 +84,14 @@ namespace Chernobyl_Relay_Chat
 
         public static void GameUpdate()
         {
-            if (disable || processID == -1) return;
+            if (disable || processID == -1 || gamePath is null) return;
 
             // Wipe game output when first discovered
             if (!firstClear)
             {
                 try
                 {
-                    File.WriteAllText(gamePath + CRCOptions.OutPath, "", encoding);
+                    File.WriteAllText(Path.Combine(gamePath, CRCOptions.OutPath), "", encoding);
                     firstClear = true;
                 }
                 catch (IOException)
@@ -118,8 +108,8 @@ namespace Chernobyl_Relay_Chat
             // Get messages from game
             try
             {
-                string[] lines = File.ReadAllLines(gamePath + CRCOptions.OutPath, encoding);
-                File.WriteAllText(gamePath + CRCOptions.OutPath, "", encoding);
+                string[] lines = File.ReadAllLines(Path.Combine(gamePath, CRCOptions.OutPath), encoding);
+                File.WriteAllText(Path.Combine(gamePath, CRCOptions.OutPath), "", encoding);
                 foreach (string line in lines)
                 {
                     Match typeMatch = outputRx.Match(line);
@@ -180,7 +170,7 @@ namespace Chernobyl_Relay_Chat
             {
                 try
                 {
-                    File.AppendAllText(gamePath + CRCOptions.InPath, sendQueue.ToString(), encoding);
+                    File.AppendAllText(Path.Combine(gamePath, CRCOptions.InPath), sendQueue.ToString(), encoding);
                     sendQueue.Clear();
                 }
                 catch (IOException) { }

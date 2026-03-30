@@ -1,26 +1,32 @@
-﻿using System;
+﻿using Avalonia.Media;
+using Avalonia.Threading;
+using System;
 using System.Collections.Generic;
-using System.Drawing;
-using System.Media;
-using System.Windows.Forms;
 
 namespace Chernobyl_Relay_Chat
 {
     class CRCDisplay
     {
-        private static ClientDisplay clientDisplay;
+        private static ClientDisplay? clientDisplay;
 
-        public static void Start()
+        // SoC-style amber-orange used for NPC/speaker names in Shadow of Chernobyl
+        internal static readonly IBrush NickBrush = new SolidColorBrush(Color.FromRgb(206, 143, 63));
+
+        /// <summary>Called by App.OnFrameworkInitializationCompleted to register the main window.</summary>
+        public static void SetWindow(ClientDisplay window)
         {
-            clientDisplay = new ClientDisplay();
-            Application.Run(clientDisplay);
+            clientDisplay = window;
         }
 
         public static void Stop()
         {
-            clientDisplay?.Invoke(new Action(() =>
-                clientDisplay.Close())
-                );
+            Dispatcher.UIThread.Post(() => clientDisplay?.Close());
+        }
+
+        public static void ShowError(string message)
+        {
+            // Route errors into the chat window; a modal dialog would require an owner reference.
+            AddError(message);
         }
 
         public static void AddInformation(string message)
@@ -32,8 +38,6 @@ namespace Chernobyl_Relay_Chat
         {
             clientDisplay?.AddError(message);
         }
-
-
 
         public static void OnConnected()
         {
@@ -52,18 +56,19 @@ namespace Chernobyl_Relay_Chat
 
         public static void OnChannelMessage(string nick, string message)
         {
-            clientDisplay?.AddMessage(nick, message, Color.Black);
+            clientDisplay?.AddMessage(nick, message, NickBrush);
         }
 
         public static void OnOwnChannelMessage(string nick, string message)
         {
-            clientDisplay?.AddMessage(nick, message, Color.Gray);
+            clientDisplay?.AddMessage(nick, message, NickBrush);
         }
 
         public static void OnQueryMessage(string from, string to, string message)
         {
-            SystemSounds.Asterisk.Play();
-            clientDisplay?.AddMessage(from + " -> " + to, message, Color.DeepPink);
+            // Notification sound: Console.Beep() is cross-platform (no-op if no bell available)
+            try { Console.Beep(); } catch { }
+            clientDisplay?.AddMessage(from + " -> " + to, message, NickBrush);
         }
 
         public static void OnGotKicked()

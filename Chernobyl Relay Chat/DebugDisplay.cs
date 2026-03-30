@@ -1,12 +1,13 @@
-﻿using System;
+﻿using Avalonia.Controls;
+using Avalonia.Threading;
 using System.Text;
-using System.Windows.Forms;
 
 namespace Chernobyl_Relay_Chat
 {
-    public partial class DebugDisplay : Form
+    public partial class DebugDisplay : Window
     {
-        StringBuilder rawSb = new StringBuilder();
+        private readonly StringBuilder _rawSb = new StringBuilder();
+        private readonly object _lock = new object();
 
         public DebugDisplay()
         {
@@ -15,20 +16,20 @@ namespace Chernobyl_Relay_Chat
 
         public void AddRaw(string message)
         {
-            if (rawSb.Length > 0)
-                rawSb.Append("\r\n");
-            rawSb.Append(message);
-            Invoke(new Action(() =>
+            string text;
+            lock (_lock)
             {
-                textBoxRaw.Text = rawSb.ToString();
-                textBoxRaw.SelectionStart = textBoxRaw.Text.Length;
-                textBoxRaw.ScrollToCaret();
-            }));
-        }
-
-        private void textBoxRaw_TextChanged(object sender, EventArgs e)
-        {
-
+                if (_rawSb.Length > 0)
+                    _rawSb.Append('\n');
+                _rawSb.Append(message);
+                text = _rawSb.ToString();
+            }
+            Dispatcher.UIThread.Post(() =>
+            {
+                textBoxRaw.Text = text;
+                textBoxRaw.CaretIndex = textBoxRaw.Text?.Length ?? 0;
+                scrollViewer.ScrollToEnd();
+            });
         }
     }
 }

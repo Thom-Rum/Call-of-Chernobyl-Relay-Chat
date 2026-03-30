@@ -6,27 +6,28 @@ using System.Text;
 
 namespace Chernobyl_Relay_Chat
 {
-    // Add method to retrieve process path without going through Process.MainModule,
-    // because that fails for certain permissions. Basically copypasted from:
-    // http://www.aboutmycode.com/net-framework/how-to-get-elevated-process-path-in-net/
     static class ProcessExtension
     {
+        /// <summary>
+        /// Returns the full path of the process executable, cross-platform.
+        /// On Windows this uses QueryFullProcessImageName via kernel32 so it
+        /// works even for elevated processes (Vista+).  On Linux/macOS .NET
+        /// reads /proc/{pid}/exe (or the OS equivalent) through MainModule.
+        /// </summary>
+        public static string GetProcessPath(this Process process)
+        {
+            if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+                return GetProcessPathWindows(process.Id);
+
+            return process.MainModule?.FileName ?? string.Empty;
+        }
+
+        // ── Windows-specific P/Invoke ────────────────────────────────────────
+
         [Flags]
         private enum ProcessAccessFlags : uint
         {
-            All = 0x001F0FFF,
-            Terminate = 0x00000001,
-            CreateThread = 0x00000002,
-            VirtualMemoryOperation = 0x00000008,
-            VirtualMemoryRead = 0x00000010,
-            VirtualMemoryWrite = 0x00000020,
-            DuplicateHandle = 0x00000040,
-            CreateProcess = 0x000000080,
-            SetQuota = 0x00000100,
-            SetInformation = 0x00000200,
-            QueryInformation = 0x00000400,
             QueryLimitedInformation = 0x00001000,
-            Synchronize = 0x00100000
         }
 
         [DllImport("kernel32.dll")]
@@ -36,18 +37,10 @@ namespace Chernobyl_Relay_Chat
         [DllImport("kernel32.dll", SetLastError = true)]
         private static extern bool CloseHandle(IntPtr hHandle);
 
-        public static string GetProcessPath(this Process process)
-        {
-            if (Environment.OSVersion.Version.Major >= 6)
-                return GetProcessPathSafe(process.Id);
-            else
-                return process.MainModule.FileName;
-        }
-
-        private static string GetProcessPathSafe(int processID)
+        private static string GetProcessPathWindows(int processId)
         {
             StringBuilder buffer = new StringBuilder(1024);
-            IntPtr hprocess = OpenProcess(ProcessAccessFlags.QueryLimitedInformation, false, processID);
+            IntPtr hprocess = OpenProcess(ProcessAccessFlags.QueryLimitedInformation, false, processId);
             if (hprocess != IntPtr.Zero)
             {
                 try
