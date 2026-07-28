@@ -2,6 +2,7 @@
 using Meebey.SmartIrc4net;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -24,6 +25,7 @@ namespace Chernobyl_Relay_Chat
         private static string lastName, lastChannel, lastQuery, lastFaction;
         private static bool retry = false;
         private static bool _usingSsl = false;
+        private static readonly object connectionLogLock = new object();
 
         public static List<string> Users = new List<string>();
 
@@ -33,6 +35,7 @@ namespace Chernobyl_Relay_Chat
 
         public static void Start()
         {
+            LogConnection("Starting IRC client.");
 #if DEBUG
             // DebugDisplay is an Avalonia Window and must be created on the UI thread.
             Dispatcher.UIThread.Post(() => { debug = new DebugDisplay(); debug.Show(); });
@@ -62,6 +65,7 @@ namespace Chernobyl_Relay_Chat
                 }
                 else
                 {
+                    LogConnection("Unable to connect over SSL or plain IRC.");
                     CRCDisplay.ShowError(CRCStrings.Localize("client_connection_error"));
 #if DEBUG
                     Dispatcher.UIThread.Post(() => debug?.Close());
@@ -145,7 +149,9 @@ namespace Chernobyl_Relay_Chat
         {
             if (client.IsConnected)
             {
-                client.RfcQuit("Safe");
+                LogConnection("Closing IRC connection as " + client.Nickname + ".");
+                client.RfcQuit("Client closing");
+                client.Disconnect();
             }
         }
 
@@ -177,6 +183,8 @@ namespace Chernobyl_Relay_Chat
         {
             CRCOptions.Name = nick;
             lastName = nick;
+            CRCOptions.Save();
+            LogConnection("Requested nickname change to " + nick + ".");
             client.RfcNick(nick);
         }
 
@@ -294,6 +302,7 @@ namespace Chernobyl_Relay_Chat
 
         private static void OnConnected(object? sender, EventArgs e)
         {
+            LogConnection("Connected to " + CRCOptions.Server + ". Logging in as " + CRCOptions.Name + ".");
             Users.Clear();
             crcNicks.Clear();
             lastName = CRCOptions.Name;
@@ -316,6 +325,7 @@ namespace Chernobyl_Relay_Chat
 
         private static void OnDisconnected(object? sender, EventArgs e)
         {
+            LogConnection("Disconnected from IRC. Retry enabled: " + retry + ".");
             if (retry)
             {
                 string message = CRCStrings.Localize("client_reconnecting");
@@ -402,6 +412,7 @@ namespace Chernobyl_Relay_Chat
             else
             {
                 CRCOptions.Name = e.Who;
+                LogConnection("Joined " + e.Data.Channel + " as " + e.Who + ".");
                 string message = CRCStrings.Localize("client_connected");
                 CRCDisplay.AddInformation(message);
                 CRCGame.AddInformation(message);
@@ -489,6 +500,7 @@ namespace Chernobyl_Relay_Chat
             else
             {
                 CRCOptions.Name = newNick;
+                LogConnection("Server changed our nickname to " + newNick + ".");
                 string message = CRCStrings.Localize("client_own_nick_change") + newNick;
                 CRCDisplay.AddInformation(message);
                 CRCGame.AddInformation(message);
@@ -497,6 +509,7 @@ namespace Chernobyl_Relay_Chat
 
         private static void OnErrorMessage(object sender, IrcEventArgs e)
         {
+            LogConnection("IRC error " + e.Data.ReplyCode + ": " + e.Data.Message);
             string message;
             switch (e.Data.ReplyCode)
             {
@@ -520,6 +533,21 @@ namespace Chernobyl_Relay_Chat
                     CRCDisplay.AddError(e.Data.Message);
                     CRCGame.AddError(e.Data.Message);
                     break;
+            }
+        }
+
+        private static void LogConnection(string message)
+        {
+            try
+            {
+                string path = Path.Combine(AppContext.BaseDirectory, "connection.log");
+                lock (connectionLogLock)
+                {
+                    File.AppendAllText(path, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + message + Environment.NewLine);
+                }
+            }
+            catch
+            {
             }
         }
     }
