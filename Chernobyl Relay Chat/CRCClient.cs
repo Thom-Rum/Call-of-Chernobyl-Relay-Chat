@@ -2,6 +2,7 @@
 using Meebey.SmartIrc4net;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Sockets;
@@ -23,7 +24,9 @@ namespace Chernobyl_Relay_Chat
         private static DateTime lastDeath = new DateTime();
         private static string lastName, lastChannel, lastQuery, lastFaction;
         private static bool retry = false;
+        private static bool stopping = false;
         private static bool _usingSsl = false;
+        private static readonly object connectionLogLock = new object();
 
         public static List<string> Users = new List<string>();
 
@@ -33,6 +36,8 @@ namespace Chernobyl_Relay_Chat
 
         public static void Start()
         {
+            stopping = false;
+            LogConnection("Starting IRC client.");
 #if DEBUG
             // DebugDisplay is an Avalonia Window and must be created on the UI thread.
             Dispatcher.UIThread.Post(() => { debug = new DebugDisplay(); debug.Show(); });
@@ -62,6 +67,7 @@ namespace Chernobyl_Relay_Chat
                 }
                 else
                 {
+                    LogConnection("Unable to connect over SSL or plain IRC.");
                     CRCDisplay.ShowError(CRCStrings.Localize("client_connection_error"));
 #if DEBUG
                     Dispatcher.UIThread.Post(() => debug?.Close());
@@ -97,6 +103,8 @@ namespace Chernobyl_Relay_Chat
             client.OnNickChange          += new NickChangeEventHandler(OnNickChange);
             client.OnErrorMessage        += new IrcEventHandler(OnErrorMessage);
             client.OnKick                += new KickEventHandler(OnKick);
+            client.OnConnectionError     += new EventHandler(OnConnectionError);
+            client.OnDisconnecting       += new EventHandler(OnDisconnecting);
             client.OnDisconnected        += new EventHandler(OnDisconnected);
             client.OnTopic               += new TopicEventHandler(OnTopic);
             client.OnTopicChange         += new TopicChangeEventHandler(OnTopicChange);
@@ -111,13 +119,15 @@ namespace Chernobyl_Relay_Chat
         {
             try
             {
+                LogConnection("Connecting to " + host + ":" + port + " using " + (ssl ? "SSL" : "plain IRC") + ".");
                 client.UseSsl = ssl;
                 client.ValidateServerCertificate = false;
                 client.Connect(host, port);
                 return true;
             }
-            catch (CouldNotConnectException)
+            catch (Exception ex)
             {
+                LogConnection("Connection attempt failed: " + ex.GetType().Name + ": " + ex.Message);
                 return false;
             }
         }
@@ -145,7 +155,9 @@ namespace Chernobyl_Relay_Chat
         {
             if (client.IsConnected)
             {
-                client.RfcQuit("Safe");
+                stopping = true;
+                LogConnection("Closing IRC connection as " + client.Nickname + ".");
+                client.RfcQuit("Client closing");
             }
         }
 
@@ -177,6 +189,7 @@ namespace Chernobyl_Relay_Chat
         {
             CRCOptions.Name = nick;
             lastName = nick;
+            LogConnection("Requested nickname change to " + nick + ".");
             client.RfcNick(nick);
         }
 
@@ -240,10 +253,26 @@ namespace Chernobyl_Relay_Chat
             }
         }
 
+        private static string RemoveLegacyNamePrefix(string nick, string message)
+        {
+            int separatorIndex = message.IndexOf('★');
+            if (separatorIndex <= 0)
+                return message;
+
+            string prefix = message.Substring(0, separatorIndex);
+            if (prefix.Equals(nick, StringComparison.OrdinalIgnoreCase)
+                || nick.StartsWith(prefix + "_", StringComparison.OrdinalIgnoreCase))
+                return message.Substring(separatorIndex + 1);
+
+            return message;
+        }
+
 
 
         private static void OnRawMessage(object sender, IrcEventArgs e)
         {
+            if (e.Data.RawMessage.StartsWith("ERROR", StringComparison.OrdinalIgnoreCase))
+            LogConnection("Server error: " + e.Data.RawMessage);
 #if DEBUG
             debug?.AddRaw(e.Data.RawMessage);
 #endif
@@ -294,6 +323,7 @@ namespace Chernobyl_Relay_Chat
 
         private static void OnConnected(object? sender, EventArgs e)
         {
+            LogConnection("Connected to " + CRCOptions.Server + ". Logging in as " + CRCOptions.Name + ".");
             Users.Clear();
             crcNicks.Clear();
             lastName = CRCOptions.Name;
@@ -316,6 +346,7 @@ namespace Chernobyl_Relay_Chat
 
         private static void OnDisconnected(object? sender, EventArgs e)
         {
+            LogConnection("Disconnected from IRC. Intentional: " + stopping + ". Retry enabled: " + retry + ".");
             if (retry)
             {
                 string message = CRCStrings.Localize("client_reconnecting");
@@ -324,6 +355,18 @@ namespace Chernobyl_Relay_Chat
                 int port = _usingSsl ? 6697 : 6667;
                 TryConnect(ResolveIPv4(CRCOptions.Server), port, _usingSsl);
             }
+        }
+
+        private static void OnConnectionError(object? sender, EventArgs e)
+        {
+            LogConnection("IRC connection error. Connected: " + client.IsConnected
+                + ". Registered: " + client.IsRegistered + ".");
+        }
+
+        private static void OnDisconnecting(object? sender, EventArgs e)
+        {
+            LogConnection("IRC disconnecting. Intentional: " + stopping
+                + ". Connected: " + client.IsConnected + ". Registered: " + client.IsRegistered + ".");
         }
 
         private static void OnTopic(object sender, TopicEventArgs e)
@@ -344,6 +387,7 @@ namespace Chernobyl_Relay_Chat
         {
             string fakeNick, faction;
             string message = GetMetadata(e.Data.Message, out fakeNick, out faction);
+            message = RemoveLegacyNamePrefix(e.Data.Nick, message);
             // If some cheeky m8 just sends delimiters, ignore it
             if (message.Length > 0)
             {
@@ -402,6 +446,7 @@ namespace Chernobyl_Relay_Chat
             else
             {
                 CRCOptions.Name = e.Who;
+                LogConnection("Joined " + e.Data.Channel + " as " + e.Who + ".");
                 string message = CRCStrings.Localize("client_connected");
                 CRCDisplay.AddInformation(message);
                 CRCGame.AddInformation(message);
@@ -489,6 +534,8 @@ namespace Chernobyl_Relay_Chat
             else
             {
                 CRCOptions.Name = newNick;
+                CRCOptions.Save();
+                LogConnection("Server changed our nickname to " + newNick + ".");
                 string message = CRCStrings.Localize("client_own_nick_change") + newNick;
                 CRCDisplay.AddInformation(message);
                 CRCGame.AddInformation(message);
@@ -497,6 +544,7 @@ namespace Chernobyl_Relay_Chat
 
         private static void OnErrorMessage(object sender, IrcEventArgs e)
         {
+            LogConnection("IRC error " + e.Data.ReplyCode + ": " + e.Data.Message);
             string message;
             switch (e.Data.ReplyCode)
             {
@@ -520,6 +568,21 @@ namespace Chernobyl_Relay_Chat
                     CRCDisplay.AddError(e.Data.Message);
                     CRCGame.AddError(e.Data.Message);
                     break;
+            }
+        }
+
+        private static void LogConnection(string message)
+        {
+            try
+            {
+                string path = Path.Combine(AppContext.BaseDirectory, "connection.log");
+                lock (connectionLogLock)
+                {
+                    File.AppendAllText(path, DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss") + " " + message + Environment.NewLine);
+                }
+            }
+            catch
+            {
             }
         }
     }
