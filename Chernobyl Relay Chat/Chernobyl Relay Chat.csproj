@@ -1,25 +1,25 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <RootNamespace>Chernobyl_Relay_Chat</RootNamespace>
     <AssemblyName>Chernobyl Relay Chat</AssemblyName>
     <Nullable>enable</Nullable>
     <ApplicationIcon>PDA.ico</ApplicationIcon>
-    <Version>0.10.0</Version>
+    <Version>0.11.0</Version>
   </PropertyGroup>
 
   <!-- NuGet packages -->
   <ItemGroup>
-    <PackageReference Include="Avalonia" Version="11.2.2" />
-    <PackageReference Include="Avalonia.Desktop" Version="11.2.2" />
-    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.2" />
-    <PackageReference Include="log4net" Version="2.0.17" />
-    <PackageReference Include="Semver" Version="2.3.0" />
-    <PackageReference Include="System.Text.Encoding.CodePages" Version="8.0.0" />
+    <PackageReference Include="Avalonia" Version="12.1.5" />
+    <PackageReference Include="Avalonia.Desktop" Version="12.1.5" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="12.1.5" />
+    <PackageReference Include="log4net" Version="3.5.0" />
+    <PackageReference Include="Microsoft.Extensions.Primitives" Version="10.0.14" />
+    <PackageReference Include="Semver" Version="3.0.0" />
   </ItemGroup>
 
-  <!-- Local DLL: SmartIrc4net (no .NET 8 NuGet build; testing .NET Framework compat shim) -->
+  <!-- Local DLL: SmartIrc4net (no .NET 10 NuGet build; testing .NET Framework compatibility) -->
   <ItemGroup>
     <Reference Include="Meebey.SmartIrc4net">
       <HintPath>..\lib\SmartIrc4net.1.1\lib\Meebey.SmartIrc4net.dll</HintPath>

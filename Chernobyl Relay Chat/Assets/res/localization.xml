@@ -29,6 +29,16 @@
 		<eng>You are now connected to the network</eng>
 		<rus>Теперь Вы подключены к сети</rus>
 	</string>
+	<string id="update_available">
+		<eng>A new version of CRC is available: {0}. Download: {1}</eng>
+		<rus>Доступна новая версия CRC: {0}. Скачать: {1}</rus>
+		<ukr>Доступна нова версія CRC: {0}. Завантажити: {1}</ukr>
+	</string>
+	<string id="update_check_failed">
+		<eng>Could not check for CRC updates.</eng>
+		<rus>Не удалось проверить наличие обновлений CRC.</rus>
+		<ukr>Не вдалося перевірити наявність оновлень CRC.</ukr>
+	</string>
 	<string id="client_topic">
 		<eng>Channel rules: </eng>
 		<rus>Правила канала: </rus>

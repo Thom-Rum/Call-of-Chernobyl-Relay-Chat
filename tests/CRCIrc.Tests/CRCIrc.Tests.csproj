@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\Chernobyl Relay Chat\Chernobyl Relay Chat.csproj" />
+    <Reference Include="Meebey.SmartIrc4net">
+      <HintPath>..\..\lib\SmartIrc4net.1.1\lib\Meebey.SmartIrc4net.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+</Project>

@@ -30,7 +30,7 @@ namespace Chernobyl_Relay_Chat
                 return;
 #endif
             // Register Windows-1251 and other non-Unicode encodings for CRCGame file I/O.
-            // Required on Linux/.NET 8 where only ASCII/UTF-8 are available by default.
+            // Required on Linux/.NET 10 where only ASCII/UTF-8 are available by default.
             Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
 
             // Log any unhandled exceptions to crash.log so Linux crashes aren't silent.
