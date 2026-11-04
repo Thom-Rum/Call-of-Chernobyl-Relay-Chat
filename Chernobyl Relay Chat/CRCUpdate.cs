@@ -1,14 +1,37 @@
-﻿using System;
+using System;
+using System.IO;
+using System.Net.Http;
+using System.Reflection;
+using System.Text.Json;
 using System.Threading.Tasks;
-// TODO: Update checker disabled pending rewrite with a modern Octokit version.
-// GitHubUpdate is broken with Octokit > 0.5 and is not compatible with .NET 8.
 
 namespace Chernobyl_Relay_Chat
 {
     class CRCUpdate
     {
-        // Both methods are stubs until the update checker is rewritten against a current Octokit API.
-        public static bool CheckFirstUpdate() => false;
-        public static System.Threading.Tasks.Task<bool> CheckUpdate() => System.Threading.Tasks.Task.FromResult(false);
+        private static readonly HttpClient client = CRCReleaseChecker.CreateClient();
+
+        public static async Task CheckUpdate()
+        {
+            try
+            {
+                string? currentVersion = Assembly.GetExecutingAssembly()
+                    .GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion;
+                string? latestVersion = await CRCReleaseChecker.GetNewerRelease(client, currentVersion);
+                if (latestVersion != null)
+                {
+                    string message = string.Format(CRCStrings.Localize("update_available"),
+                        latestVersion, CRCReleaseChecker.ReleasesUrl);
+                    CRCDisplay.AddInformation(message);
+                    CRCGame.OnUpdate(message);
+                }
+            }
+            catch (Exception ex) when (ex is HttpRequestException || ex is TaskCanceledException ||
+                                       ex is JsonException || ex is InvalidDataException)
+            {
+                Console.Error.WriteLine("[CRC] Update check failed: " + ex);
+                CRCDisplay.AddError(CRCStrings.Localize("update_check_failed"));
+            }
+        }
     }
 }

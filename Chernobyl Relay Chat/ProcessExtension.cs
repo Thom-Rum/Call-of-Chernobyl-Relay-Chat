@@ -11,8 +11,8 @@ namespace Chernobyl_Relay_Chat
         /// <summary>
         /// Returns the full path of the process executable, cross-platform.
         /// On Windows this uses QueryFullProcessImageName via kernel32 so it
-        /// works even for elevated processes (Vista+).  On Linux/macOS .NET
-        /// reads /proc/{pid}/exe (or the OS equivalent) through MainModule.
+        /// works even for elevated processes (Vista+).  On Linux .NET
+        /// reads /proc/{pid}/exe through MainModule.
         /// </summary>
         public static string GetProcessPath(this Process process)
         {

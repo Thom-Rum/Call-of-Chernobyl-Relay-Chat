@@ -24,6 +24,7 @@ namespace Chernobyl_Relay_Chat
         private static string lastName, lastChannel, lastQuery, lastFaction;
         private static bool retry = false;
         private static bool _usingSsl = false;
+        private static bool updateChecked = false;
 
         public static List<string> Users = new List<string>();
 
@@ -294,6 +295,7 @@ namespace Chernobyl_Relay_Chat
 
         private static void OnConnected(object? sender, EventArgs e)
         {
+            updateChecked = false;
             Users.Clear();
             crcNicks.Clear();
             lastName = CRCOptions.Name;
@@ -406,6 +408,11 @@ namespace Chernobyl_Relay_Chat
                 CRCDisplay.AddInformation(message);
                 CRCGame.AddInformation(message);
                 CRCDisplay.OnConnected();
+                if (!updateChecked)
+                {
+                    updateChecked = true;
+                    _ = CRCUpdate.CheckUpdate();
+                }
             }
         }
 

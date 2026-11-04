@@ -13,7 +13,6 @@ namespace Chernobyl_Relay_Chat
     {
         private readonly Timer _gameCheckTimer  = new Timer(1000);
         private readonly Timer _gameUpdateTimer = new Timer(100);
-        private readonly Timer _updateCheckTimer = new Timer(300_000); // 5 min
 
         public ClientDisplay()
         {
@@ -48,12 +47,9 @@ namespace Chernobyl_Relay_Chat
 
             _gameCheckTimer.Elapsed  += (_, _) => CRCGame.GameCheck();
             _gameUpdateTimer.Elapsed += (_, _) => CRCGame.GameUpdate();
-            _updateCheckTimer.Elapsed += async (_, _) => await CRCUpdate.CheckUpdate();
-            _updateCheckTimer.AutoReset = false;
 
             _gameCheckTimer.Start();
             _gameUpdateTimer.Start();
-            _updateCheckTimer.Start();
 
             AddInformation(CRCStrings.Localize("display_connecting"));
         }
@@ -62,7 +58,6 @@ namespace Chernobyl_Relay_Chat
         {
             _gameCheckTimer.Stop();
             _gameUpdateTimer.Stop();
-            _updateCheckTimer.Stop();
 
             CRCOptions.DisplayLocationX = Position.X;
             CRCOptions.DisplayLocationY = Position.Y;
@@ -166,5 +161,4 @@ namespace Chernobyl_Relay_Chat
         }
     }
 }
-
 
