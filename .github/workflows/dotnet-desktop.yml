@@ -4,7 +4,7 @@
 #
 #   build-net10  (master + dotnet-uplift)
 #     Targets .NET 10 using the dotnet CLI.
-#     Publishes self-contained binaries for linux-x64 and win-x64.
+#     Publishes self-contained binaries for linux-x64, win-x64 and osx-arm64.
 
 name: .NET Zone Deployment Pipeline
 
@@ -20,7 +20,7 @@ env:
   PROJECT_DIRECTORY:  "Chernobyl Relay Chat"
 
 # ---------------------------------------------------------------------------
-# JOB 1 – .NET 10 multi-platform  (Avalonia, Linux + Windows)
+# JOB 1 – .NET 10 multi-platform  (Avalonia, Linux + Windows + macOS)
 # ---------------------------------------------------------------------------
 jobs:
   build-net10:
@@ -30,7 +30,7 @@ jobs:
     strategy:
       matrix:
         configuration: [Debug, Release]
-        os: [ubuntu-latest, windows-latest]
+        os: [ubuntu-latest, windows-latest, macos-latest]
 
     steps:
       - name: Checkout
